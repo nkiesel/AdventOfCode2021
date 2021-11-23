@@ -2,7 +2,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class Day00 {
-    // This is not a real test of AoC but simply a template which can be copied for the actual implementations.
     @Test
     fun testOne(input: List<String>) {
         // provide explicit lists for testing other cases than the actual test input
@@ -15,18 +14,11 @@ class Day00 {
         two(input) shouldBe 120L
     }
 
-    /**
-     * This should return the sum of the input
-     */
-    private fun one(input: List<String>): Int {
-        return input.map(String::toInt).sumOf { it }
-    }
+    // This should return the sum of the input
+    private fun one(input: List<String>): Int = input.map(String::toInt).sumOf { it }
 
-    /**
-     * This should return the product of the input
-     */
+    // This should return the product of the input
     private fun two(input: List<String>): Long {
         return input.map(String::toLong).reduce { acc, i -> acc * i }
     }
-
 }

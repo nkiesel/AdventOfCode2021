@@ -33,6 +33,18 @@ The input test data handling is implemented using a Junit5 extension for test pa
 files `resources/META-INF/services/org.junit.jupiter.api.extension.Extension` which lists the extension and
 `resources/junit-platform.properties` which enables the auto-detection of extensions.
 
+We assume that individual collaborators will commit their solutions on a "private" branch (i.e. every such branch should only contain commits from one contributor). That way, we can easily review solutions from others simply by switching branches.
+
+However, we will add all the input files to the `main` branch.  That way, collaborators can simply run `git pull; git merge main` on their "private" branch to get the available input files. Input files will be added to the `main` branch using
+1. download a new input file into `input/Day<XX>` (replace `<XX>` with the 2-digit day number)
+2. run
+   1. `git switch main`
+   2. `git add input/Day<XX>`
+   3. `git commit -m 'Another day!'`
+   4. `git push`
+   5. `git switch -`
+
+
 # Example / Template
 
 This repository contains the input file `input/Day00` and the solution file `src/test/kotlin/Day00.kt` as an example.

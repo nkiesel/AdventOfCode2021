@@ -35,7 +35,7 @@ files `resources/META-INF/services/org.junit.jupiter.api.extension.Extension` wh
 
 We assume that individual collaborators will commit their solutions on a "private" branch (i.e. every such branch should only contain commits from one contributor). That way, we can easily review solutions from others simply by switching branches.
 
-However, we will add all the input files to the `main` branch.  That way, collaborators can simply run `git pull; git merge main` on their "private" branch to get the available input files. Input files will be added to the `main` branch using
+However, we will add all the input files to the `main` branch.  That way, collaborators can simply run `git switch main; git pull --all; git switch -; git merge --commit --no-edit main` on their "private" branch to get the available input files. Input files will be added to the `main` branch using
 1. download a new input file into `input/Day<XX>` (replace `<XX>` with the 2-digit day number)
 2. run
    1. `git switch main`

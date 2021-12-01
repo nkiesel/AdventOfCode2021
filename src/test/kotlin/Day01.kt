@@ -22,8 +22,7 @@ class Day01 {
 
     private fun two(input: List<String>): Int = input.asSequence()
         .map(String::toInt)
-        .windowed(3)
-        .map { it.sum() }
+        .windowed(3) { it.sum() }
         .zipWithNext()
         .count { (a, b) -> b > a }
 }

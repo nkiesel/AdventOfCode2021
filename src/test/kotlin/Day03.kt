@@ -32,10 +32,8 @@ class Day03 {
     }
 
     private fun reduce(input: List<String>, a: Int, b: Int): Int {
-        val bits = input[0].length
-
         var candidates = input.map { it.toInt(2) }
-        var pos = bits
+        var pos = input[0].length
         while (candidates.size > 1) {
             pos--
             val mask = 1 shl pos

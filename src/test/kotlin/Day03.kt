@@ -27,35 +27,29 @@ class Day03 {
         return gamma * epsilon
     }
 
-    private fun oneBits(list: List<Int>, pos: Int): Int {
-        val mask = 1 shl pos
+    private fun oneBits(list: List<Int>, mask: Int): Int {
         return list.count { (it and mask) != 0 }
     }
 
-    private fun two(input: List<String>): Int {
+    private fun reduce(input: List<String>, a: Int, b: Int): Int {
         val bits = input[0].length
 
-        var oxygen = input.map { it.toInt(2) }
-        var pos = bits - 1
-        while (oxygen.size > 1) {
-            val mostCommon = if (oneBits(oxygen, pos) * 2 >= oxygen.size) 1 else 0
-            val mask = 1 shl pos
-            val value = mostCommon shl pos
-            oxygen = oxygen.filter { (it and mask) == value }
+        var candidates = input.map { it.toInt(2) }
+        var pos = bits
+        while (candidates.size > 1) {
             pos--
-        }
-
-        var co2 = input.map { it.toInt(2) }
-        pos = bits - 1
-        while (co2.size > 1) {
-            val leastCommon = if (oneBits(co2, pos) * 2 < co2.size) 1 else 0
             val mask = 1 shl pos
-            val value = leastCommon shl pos
-            co2 = co2.filter { (it and mask) == value }
-            pos--
+            val bit = if (oneBits(candidates, mask) * 2 >= candidates.size) a else b
+            val wanted = bit shl pos
+            candidates = candidates.filter { (it and mask) == wanted }
         }
+        return candidates[0]
+    }
 
-        return oxygen[0] * co2[0]
+    private fun two(input: List<String>): Int {
+        val oxygen = reduce(input, 1, 0)
+        val co2 = reduce(input, 0, 1)
+        return oxygen * co2
     }
 }
 
@@ -65,3 +59,5 @@ class Day03 {
 //
 // Note: as usual, I did not try to code for robustness.  One concrete example: I assume all lines have the same length,
 // although the instructions do not guarantee that.
+//
+// Update: combined the repeated code for part 2 into a single helper method.

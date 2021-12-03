@@ -24,6 +24,7 @@ class Day02 {
         twoA(input) shouldBe 1592426537L
         twoB(input) shouldBe 1592426537L
         twoC(input) shouldBe 1592426537L
+        twoOverEngineered(input) shouldBe 1592426537L
     }
 
     // Straight-forward loop
@@ -51,7 +52,9 @@ class Day02 {
             when (command) {
                 "up" -> aim -= amount
                 "down" -> aim += amount
-                "forward" -> { horizontal += amount; depth += aim * amount }
+                "forward" -> {
+                    horizontal += amount; depth += aim * amount
+                }
             }
         }
         return horizontal * depth
@@ -89,6 +92,7 @@ class Day02 {
         data class State(val horizontal: Long, val depth: Long) {
             fun compute() = horizontal * depth
         }
+
         val ops = mapOf(
             "up" to fun(state: State, amount: Int) = state.copy(depth = state.depth - amount),
             "down" to fun(state: State, amount: Int) = state.copy(depth = state.depth + amount),
@@ -102,6 +106,7 @@ class Day02 {
         data class State(val horizontal: Long, val depth: Long, val aim: Long) {
             fun compute() = horizontal * depth
         }
+
         val ops = mapOf(
             "up" to fun(state: State, amount: Int) = state.copy(aim = state.aim - amount),
             "down" to fun(state: State, amount: Int) = state.copy(aim = state.aim + amount),
@@ -121,6 +126,7 @@ class Day02 {
                 }
                 return this
             }
+
             fun compute() = horizontal * depth
         }
         return input.map { it.split(" ") }.fold(State(0L, 0L)) { acc, line -> acc.process(line[0], line[1].toInt()) }.compute()
@@ -133,13 +139,61 @@ class Day02 {
                 when (command) {
                     "up" -> aim -= amount
                     "down" -> aim += amount
-                    "forward" -> { horizontal += amount; depth += aim * amount }
+                    "forward" -> {
+                        horizontal += amount; depth += aim * amount
+                    }
                 }
                 return this
             }
+
             fun compute() = horizontal * depth
         }
         return input.map { it.split(" ") }.fold(State(0L, 0L, 0L)) { acc, line -> acc.process(line[0], line[1].toInt()) }.compute()
+    }
+
+    // Below is a completely over-engineered solution combining my idea of an explicit State
+    // object with Prasad's idea of a Command class. Only implemented for part 2.
+
+    class State(var horizontal: Long, var depth: Long, var aim: Long) {
+        fun compute() = horizontal * depth
+    }
+    private fun initialState() = State(0L, 0L, 0L)
+
+    sealed class Command {
+        abstract fun process(state: State): State
+    }
+
+    class Up(private val amount: Int) : Command() {
+        constructor(parameter: String) : this(parameter.toInt())
+        override fun process(state: State) = state.apply { aim -= amount }
+    }
+
+    class Down(private val amount: Int) : Command() {
+        constructor(parameter: String) : this(parameter.toInt())
+        override fun process(state: State) = state.apply { aim += amount }
+    }
+
+    class Forward(private val amount: Int) : Command() {
+        constructor(parameter: String) : this(parameter.toInt())
+        override fun process(state: State) = state.apply {
+            horizontal += amount
+            depth += aim * amount
+        }
+    }
+
+    private fun List<String>.toCommands() = this
+        .map { it.split(" ", limit = 2) }
+        .mapNotNull { (command, parameter) ->
+            when (command) {
+                "up" -> Up(parameter)
+                "down" -> Down(parameter)
+                "forward" -> Forward(parameter)
+                else -> null
+            }
+        }
+
+    private fun twoOverEngineered(input: List<String>): Long {
+        return input.toCommands().fold(initialState()) { state, cmd -> cmd.process(state) }.compute()
     }
 }
 
@@ -149,3 +203,7 @@ class Day02 {
 //
 // Learning from previous puzzles, I tend to always use "Long" instead of "Int" for computations to reduce the risk of value
 // overruns.
+//
+// After seeing Prasad's solution, I thought about a more abstract problem description: our submarine has a state (initially depth
+// and forward progress, and then also aim), and a sequence of commands which manipulate that state.  This lead to the completely
+// over-engineered solution. It might pay off if future puzzles pick up on this problem and add more state and commands.

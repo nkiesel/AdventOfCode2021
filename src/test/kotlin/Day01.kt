@@ -13,6 +13,7 @@ class Day01 {
     fun testTwo(input: List<String>) {
         two(listOf("607", "618", "618", "617", "647", "716", "769", "792")) shouldBe 5
         two(input) shouldBe 1311
+        twoK(input) shouldBe 1311
     }
 
     private fun one(input: List<String>): Int = input.asSequence()
@@ -25,4 +26,11 @@ class Day01 {
         .windowed(3) { it.sum() }
         .zipWithNext()
         .count { (a, b) -> b > a }
+
+    // Solution from JetBrains video. This realizes that when we compare 2 windows, it always ends up
+    // doing (A + B + C) <=> (B + C + D). Thus, we can eliminate "B + C" and simply use A <=> D
+    private fun twoK(input: List<String>): Int = input.asSequence()
+        .map(String::toInt)
+        .windowed(4)
+        .count { it[3] > it[0] }
 }

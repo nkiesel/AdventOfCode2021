@@ -51,11 +51,11 @@ class Day03 {
     }
 }
 
-// This was a brute-force day with quiet a few errors along the way.  Bit manipulation is clearly not one of my strength.
+// This was a brute-force day with quite a few errors along the way.  Bit manipulation is clearly not one of my strength.
 // I avoided that completely in part 1 and instead used string manipulations to count. That did not work for part 2 though.
 // Pretty sure there are much more elegant solutions for this.
 //
-// Note: as usual, I did not try to code for robustness.  One concrete example: I assume all lines have the same length,
+// Note: As usual, I did not try to code for robustness.  One concrete example: I assume all lines have the same length,
 // although the instructions do not guarantee that.
 //
 // Update: combined the repeated code for part 2 into a single helper method.

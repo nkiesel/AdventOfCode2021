@@ -37,33 +37,39 @@ class Day04 {
     }
 
     class Board(numbers: List<Int>) {
+        private val nums = numbers.toMutableSet()
         // we precompute the rows and cols
         private val rows = (0..4).map { x -> MutableList(5) { y -> numbers[x * 5 + y] } }
         private val cols = (0..4).map { x -> MutableList(5) { y -> numbers[x + 5 * y] } }
+        private var winner = false
 
         fun winner(n: Int): Boolean {
+            if (winner) return true
+            if (!nums.remove(n)) return false
             // replace matching numbers with 0 in rows and cols
             rows.forEach { r -> r.replaceAll { if (it == n) 0 else it } }
             cols.forEach { c -> c.replaceAll { if (it == n) 0 else it } }
-            // we have a wining board if any row or col only contains 0s
-            return rows.any { it.sum() == 0 } || cols.any { it.sum() == 0 }
+            // we have a winning board if any row or col only contains 0s
+            return (rows.any { it.sum() == 0 } || cols.any { it.sum() == 0 }).also { winner = it }
         }
 
         // we only need to add up either all the rows or all the cols
         fun unmarkedSum() = rows.sumOf { it.sum() }
     }
 
+    private val digits = Regex("""\d+""")
+
+    private fun findNumbers(value: String) = digits.findAll(value).map { it.groupValues[0].toInt() }.toList()
+
     private fun one(input: List<String>): Int {
         val numbers = input[0].split(",").map(String::toInt)
         val boards = input
-            .drop(1) // drop number line
-            .chunked(6) // break into groups of 6 lines
-                // find all numbers in the group and create a board from the resulting list
-            .map { board ->
-                Day04.Board(Regex("""\d+""").findAll(board.joinToString(" "))
-                    .map { it.groupValues[0].toInt() }.toList()
-                )
-            }
+            // drop number line
+            .drop(1)
+            // break into groups of 6 lines
+            .chunked(6)
+            // find all numbers in the group and create a board from the resulting list
+            .map { board -> Board(findNumbers(board.joinToString(" "))) }
 
         for (n in numbers) {
             for (board in boards) {
@@ -78,8 +84,7 @@ class Day04 {
         val boards = input
             .drop(1)
             .chunked(6)
-            .map { board -> Board(Regex("""\d+""").findAll(board.joinToString(" "))
-                .map { it.groupValues[0].toInt() }.toList()) }
+            .map { board -> Board(findNumbers(board.joinToString(" "))) }
             .toMutableList()
 
         for (n in numbers) {
@@ -89,33 +94,11 @@ class Day04 {
         }
         return 0
     }
-
-    class SmartBoard(numbers: List<Int>) {
-        private val nums = numbers.toMutableSet()
-        // we precompute the rows and cols
-        private val rows = (0..4).map { x -> MutableList(5) { y -> numbers[x * 5 + y] } }
-        private val cols = (0..4).map { x -> MutableList(5) { y -> numbers[x + 5 * y] } }
-        private var winner = false
-
-        fun winner(n: Int): Boolean {
-            if (winner) return true
-            if (!nums.remove(n)) return false
-            // replace matching numbers with 0 in rows and cols
-            rows.forEach { r -> r.replaceAll { if (it == n) 0 else it } }
-            cols.forEach { c -> c.replaceAll { if (it == n) 0 else it } }
-            // we have a wining board if any row or col only contains 0s
-            winner = rows.any { it.sum() == 0 } || cols.any { it.sum() == 0 }
-            return winner
-        }
-
-        // we only need to add up either all the rows or all the cols
-        fun unmarkedSum() = rows.sumOf { it.sum() }
-    }
 }
 
 // I quickly came up with the idea to store both rows and cols for every board and to replace struck out numbers with 0.
 // That drastically simplifies detecting winning boards.  I spent most of the development time converting the input into
 // boards. The break-through was to use "findAll" which avoids empty strings etc.
 //
-// After submitting the results, I thought about avoiding to process boards which do not contain the drawn number.
-// Is a bit faster, but also a bit more complicated.  Modified code is the unused "SmartBoard" class.
+// After submitting the results, I thought about avoiding to process boards which do not contain the drawn number. I then
+// added "nums" and "winner" to the Board class. This code is a bit more complicated but also faster.

@@ -69,7 +69,7 @@ class Day04 {
             // break into groups of 6 lines
             .chunked(6)
             // find all numbers in the group and create a board from the resulting list
-            .map { board -> Board(findNumbers(board.joinToString(" "))) }
+            .map { Board(findNumbers(it.joinToString(" "))) }
 
         for (n in numbers) {
             for (board in boards) {
@@ -84,7 +84,7 @@ class Day04 {
         val boards = input
             .drop(1)
             .chunked(6)
-            .map { board -> Board(findNumbers(board.joinToString(" "))) }
+            .map { Board(findNumbers(it.joinToString(" "))) }
             .toMutableList()
 
         for (n in numbers) {

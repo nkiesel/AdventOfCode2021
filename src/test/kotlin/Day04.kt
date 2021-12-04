@@ -37,21 +37,16 @@ class Day04 {
     }
 
     class Board(numbers: List<Int>) {
-        private val nums = numbers.toMutableSet()
         // we precompute the rows and cols
         private val rows = (0..4).map { x -> MutableList(5) { y -> numbers[x * 5 + y] } }
         private val cols = (0..4).map { x -> MutableList(5) { y -> numbers[x + 5 * y] } }
 
         fun winner(n: Int): Boolean {
-            return if (nums.remove(n)) {
-                // replace matching numbers with 0 in rows and cols
-                rows.forEach { r -> r.replaceAll { if (it == n) 0 else it } }
-                cols.forEach { c -> c.replaceAll { if (it == n) 0 else it } }
-                // we have a wining board if any row or col only contains 0s
-                rows.any { it.sum() == 0 } || cols.any { it.sum() == 0 }
-            } else {
-                false
-            }
+            // replace matching numbers with 0 in rows and cols
+            rows.forEach { r -> r.replaceAll { if (it == n) 0 else it } }
+            cols.forEach { c -> c.replaceAll { if (it == n) 0 else it } }
+            // we have a wining board if any row or col only contains 0s
+            return rows.any { it.sum() == 0 } || cols.any { it.sum() == 0 }
         }
 
         // we only need to add up either all the rows or all the cols
@@ -64,8 +59,11 @@ class Day04 {
             .drop(1) // drop number line
             .chunked(6) // break into groups of 6 lines
                 // find all numbers in the group and create a board from the resulting list
-            .map { board -> Board(Regex("""\d+""").findAll(board.joinToString(" "))
-                .map { it.groupValues[0].toInt() }.toList()) }
+            .map { board ->
+                Day04.Board(Regex("""\d+""").findAll(board.joinToString(" "))
+                    .map { it.groupValues[0].toInt() }.toList()
+                )
+            }
 
         for (n in numbers) {
             for (board in boards) {
@@ -113,7 +111,6 @@ class Day04 {
         // we only need to add up either all the rows or all the cols
         fun unmarkedSum() = rows.sumOf { it.sum() }
     }
-
 }
 
 // I quickly came up with the idea to store both rows and cols for every board and to replace struck out numbers with 0.
@@ -121,5 +118,4 @@ class Day04 {
 // boards. The break-through was to use "findAll" which avoids empty strings etc.
 //
 // After submitting the results, I thought about avoiding to process boards which do not contain the drawn number.
-// Does not really make a difference for the runtime of the given input, but looks nicer.  Modified code is the unused
-// "SmartBoard" class.
+// Is a bit faster, but also a bit more complicated.  Modified code is the unused "SmartBoard" class.

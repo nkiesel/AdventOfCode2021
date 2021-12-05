@@ -111,12 +111,52 @@ Spreadsheet Link : [Click Here](https://docs.google.com/spreadsheets/d/1BBQU7gAa
 
 ## Day 03
 
-{ details and correct spreadsheet coming soon }
+This puzzle involved binary numbers but that wasn't the difference. It involved
+bit operations and the first thought that crossed my mind is if I can even visualize
+this in a spreadsheet. Was there functions to get to the first bit of a number? I didn't
+know ... I don't know. Then I decided to go with the flow here and just decide that
+each bit itself is a column. Now technically for a spreadsheet that thinks in decimals
+each column is a decimal number but why not? So I pasted the input into my
+ever reliable geany editor and created a TAB between all digits so that the input
+was ready to be pasted to my spreadsheet and it was there in all its glory looking
+like a rain of 0s and 1s. I left some rows above for calculations.
 
-https://docs.google.com/spreadsheets/d/1-ixuC2pk05qcwyeLnP5vBzve-c6kwPxcnC7haGPaWd4/edit
+Part one of the puzzle was rather easy. Compare which bit appears the most in
+each position. So this simply involved spreadsheet arithmetic that can either
+be cajoled into one cell or spread across multiple by adding the 1s and 0s separately
+and then comparing them. I chose the method of keeping smaller portions of
+the arithmetic in separate cells for easy debugging. It was all about concatenating
+the "answer cells" back into a decimal, copying over the answer and pasting
+at the AoC website. Second part wasn't easy at all, although it seemed to be.
+
+Second part should have been easy if I had done some clear thinking and had not
+been over-ambitious. Since it involved filtering the input over and over again I was
+focussed on how to implement that filtering logic and forgot that I could not
+go down a "filtered path" for both the values that were required this is because
+they are "opposite sides of a tree" if I may think of that data structure i.e the
+numbers discarded for 0 are the ones I need to use for 1. My filtering logic with
+a spreadsheet however would just not let that happen, but I unnecessarily believed
+it would and then went down a rabbit hole. So finally gave up and created two
+sheets for both the paths (something if done first would have saved time) and
+then the filtering logic worked.
+
+Filtering logic: The filtering logic worked. I had to deal with the fact that I wasn't
+yet writing macros or code. So a given cell can only be "aware" if itself and then
+display values based on its surroundings and cannot modify "itself" or even other
+cells in the neighborhood. So the only way to remember that a given bit position
+is unusable was to maintain a state-cell next to the cell containing the bit. So for
+Part TWO I created additional columns (marked in yellow) to maintain state after
+each iteration. A -1 (minus one) indicates that this bit is not available for summaries.
+Now the way it works is that on the same row, all cells will be -1 if one on the left
+is -1, thus an entire number is filtered out. Rest is easy to figure out because it
+is similar to Part ONE. The numbers get summed up, compared and then a bit
+is put in the location. Except for one difference; some additional logic because this
+operation can end anytime when we run out of numbers, so an overlapping IF
+condition to handle that too. 
+
+Spreadsheet Link : [Click Here](https://docs.google.com/spreadsheets/d/1-ixuC2pk05qcwyeLnP5vBzve-c6kwPxcnC7haGPaWd4/edit)
 
 ## Day 04
 
 { details and correct spreadsheet coming soon }
 
-https://docs.google.com/spreadsheets/d/1-ixuC2pk05qcwyeLnP5vBzve-c6kwPxcnC7haGPaWd4/edit

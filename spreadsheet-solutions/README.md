@@ -85,9 +85,29 @@ Spreadsheet Link : [Click Here](https://docs.google.com/spreadsheets/d/1eUcM825_
 
 ## Day 02
 
-{ details coming soon }
+This puzzle followed instructions based on which a certain amount had to change
+continuously. Well in this case, two amounts which can be thought of as coordinates.
+But this day also brought a new item in the workflow. The input was given as two
+terms, a word and a number with space in between. So full disclosure, I had an
+open window handy with my go-to editor geany which I use for simple, escape-based
+and regex cleanup of data I get. So I did paste the input there first and converted
+the spaces to tabs so that I could paste the information into my spreadsheet
+first. 
 
-https://docs.google.com/spreadsheets/d/1BBQU7gAaDbPbkbcplghReMJq0bxIItvoS_j_hxoHVjQ/edit
+The input was thus treated as two columns on the left. The horizontal movement
+and depth was now simply about a conditional within which there was arithmetic
+betwen a "previous value" and a "current value". This was understood and coded
+fast but the second part troubled me.
+
+The trouble was not in the solution, as anyone can see. It was straightforward. I 
+think for a long time I understood the question incorrectly or perhaps the wording
+in the puzzle confused me. So I made the mistake of leaving some remnants of
+the arithmetic of the first part in there, continuously getting my answer wrong
+and getting frustrated before realizing my mistake. But solution was similar
+again with one looking for the numbers generated at the end of the cycle, i.e
+in spreadsheet terms, the last row mattered. 
+
+Spreadsheet Link : [Click Here](https://docs.google.com/spreadsheets/d/1BBQU7gAaDbPbkbcplghReMJq0bxIItvoS_j_hxoHVjQ/edit)
 
 ## Day 03
 

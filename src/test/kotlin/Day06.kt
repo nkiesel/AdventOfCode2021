@@ -31,7 +31,8 @@ class Day06 {
 
     private fun two(input: String, iterations: Int): Long {
         val fish = input.split(",").map(String::toInt).groupingBy { it }.eachCount()
-        var g = LongArray(9) { fish[it]?.toLong() ?: 0 }
+        // we know that the maximum "age" of a fish is 8, and thus only need an array of 9
+        var g = LongArray(9) { fish[it]?.toLong() ?: 0L }
         repeat(iterations) {
             val n = LongArray(9)
             for (i in g.indices) {
@@ -39,6 +40,7 @@ class Day06 {
                     n[6] = g[0]
                     n[8] = g[0]
                 } else {
+                    // n[6] is the only possible non-0 value, but no reason for another "if" here
                     n[i - 1] += g[i]
                 }
             }
@@ -46,7 +48,6 @@ class Day06 {
         }
         return g.sum()
     }
-
 }
 
 // I solved part 1 in the most straight-forward way I could imagine: simply compute the next list

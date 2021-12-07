@@ -17,14 +17,14 @@ class Day07 {
         two(input.first()) shouldBe 85015836
     }
 
-    private fun List<Int>.match1(n: Int) = sumOf { (it -n).absoluteValue }
+    private fun List<Int>.match1(n: Int) = sumOf { (it - n).absoluteValue }
 
     private fun one(input: String): Int {
         val l = input.split(",").map(String::toInt)
         return (l.minOf { it }..l.maxOf { it }).minOf { l.match1(it) }
     }
 
-    private fun List<Int>.match2(n: Int) = sumOf { (it -n).absoluteValue.let { d -> d * (d + 1) / 2} }
+    private fun List<Int>.match2(n: Int) = sumOf { (it - n).absoluteValue.let { d -> d * (d + 1) / 2 } }
 
     private fun two(input: String): Int {
         val l = input.split(",").map(String::toInt)

@@ -38,15 +38,13 @@ class Day09 {
 
     private fun Array<IntArray>.lowPoint(x: Int, y: Int): Boolean {
         val p = this[y][x]
-        for ((dx, dy) in listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)) {
-            val cx = x + dx
-            val cy = y + dy
-            if (cx in this[0].indices && cy in this.indices) {
-                if (this[cy][cx] <= p) return false
-            }
-        }
-        return true
+        return neighbors(x, y).none { (cx, cy) -> this[cy][cx] <= p }
     }
+
+    private fun Array<IntArray>.neighbors(x: Int, y: Int) =
+        listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
+            .map { (dx, dy) -> x + dx to y + dy }
+            .filter { (cx, cy) -> cx in this[0].indices && cy in this.indices }
 
     private fun two(input: List<String>): Int {
         val map = input.map { line -> line.toList().map { it.digitToInt() }.toIntArray() }.toTypedArray()
@@ -64,11 +62,9 @@ class Day09 {
     private fun Array<IntArray>.basinSize(x: Int, y: Int): Int {
         var size = 1
         this[y][x] = 9
-        for ((dx, dy) in listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)) {
-            val cx = x + dx
-            val cy = y + dy
-            if (cx in this[0].indices && cy in this.indices) {
-                if (this[cy][cx] != 9) size += basinSize(cx, cy)
+        for ((cx, cy) in neighbors(x, y)) {
+            if (this[cy][cx] != 9) {
+                size += basinSize(cx, cy)
             }
         }
         return size
@@ -80,3 +76,7 @@ class Day09 {
 // I only had one hick-up: computation of the neighbors.  I initially iterated over -1..1 for
 // dx and dy and missed excluding the center.  I then simply explicitly listed the 4 pairs of
 // offsets.
+// Update: I created a "neighbors" helper method to isolate the neighbors' computation.
+//
+// It would be interesting to implement this using matrix libraries like
+// https://github.com/Kotlin/multik or https://github.com/JetBrains-Research/viktor

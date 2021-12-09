@@ -114,7 +114,7 @@ public class Day09 {
 			}
 		}
 		int sum = 0;
-		int[][] memo = new int[matrix.length][matrix[0].length];
+		//int[][] memo = new int[matrix.length][matrix[0].length];
 		List<Integer> sizes = new ArrayList<>();
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < matrix[i].length; j++) {
@@ -138,7 +138,7 @@ public class Day09 {
 						continue;
 					}
 				}
-				sizes.add(dp(matrix, i, j, memo));
+				sizes.add(df(matrix, i, j));
 			}
 		}
 		Collections.sort(sizes);
@@ -150,16 +150,12 @@ public class Day09 {
 		System.out.println(prod);
 	}
 
-	static int dp(int[][] matrix, int i, int j, int[][] memo) {
+	static int df(int[][] matrix, int i, int j) {
 		if (i < 0 || i >= matrix.length || j < 0 || j >= matrix[0].length || matrix[i][j] > 8) {
 			return 0;
 		}
-		if (memo[i][j] == 0) {
-			matrix[i][j] += 100;
-			int size = 1 + dp(matrix, i + 1, j, memo) + dp(matrix, i - 1, j, memo) + dp(matrix, i, j + 1, memo)
-					+ dp(matrix, i, j - 1, memo);
-			memo[i][j] = size;
-		}
-		return memo[i][j];
+		matrix[i][j] += 100;
+		return 1 + df(matrix, i + 1, j) + df(matrix, i - 1, j) + df(matrix, i, j + 1)
+					+ df(matrix, i, j - 1);
 	}
 }

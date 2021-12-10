@@ -28,42 +28,45 @@ class Day10 {
     }
 
     private fun one(input: List<String>): Int {
-        return input.map {
-            var line = it
-            while (line.isNotEmpty()) {
-                val n = line.replace("{}", "").replace("[]", "").replace("<>", "").replace("()", "")
-                if (line == n) break
-                line = n
+        val regex2 = """^[\[<({]+""".toRegex()
+        return input.mapNotNull { reduce(it).replace(regex2, "").firstOrNull() }
+            .map {
+                when (it) {
+                    ')' -> 3
+                    ']' -> 57
+                    '}' -> 1197
+                    '>' -> 25137
+                    else -> 0
+                }
             }
-            when (line.replace("""^[\[<({]+""".toRegex(), "").firstOrNull() ?: ' ') {
-                ')' -> 3
-                ']' -> 57
-                '}' -> 1197
-                '>' -> 25137
-                else -> 0
-            }
-        }.sumOf { it }
+            .sumOf { it }
+    }
+
+    private val regex1 = """\{}|\[]|<>|\(\)""".toRegex()
+
+    private fun reduce(line: String): String {
+        var l = line
+        while (l.isNotEmpty()) {
+            val n = l.replace(regex1, "")
+            if (l == n) break
+            l = n
+        }
+        return l
     }
 
     private fun two(input: List<String>): Long {
-        val scores = input.mapNotNull {
-            var line = it
-            while (line.isNotEmpty()) {
-                val n = line.replace("{}", "").replace("[]", "").replace("<>", "").replace("()", "")
-                if (line == n) break
-                line = n
-            }
-            if (line.matches("""^[\[<({]+$""".toRegex())) {
-                line.toList().foldRight(0L) { c, acc ->
-                    acc * 5 + when (c) {
-                        '(' -> 1
-                        '[' -> 2
-                        '{' -> 3
-                        '<' -> 4
-                        else -> 0
-                    }
+        val regex2 = """^[\[<({]+$""".toRegex()
+
+        val scores = input.map { reduce(it) }.filter { it.matches(regex2) }.map { line ->
+            line.toList().foldRight(0L) { c, acc ->
+                acc * 5 + when (c) {
+                    '(' -> 1
+                    '[' -> 2
+                    '{' -> 3
+                    '<' -> 4
+                    else -> 0
                 }
-            } else null
+            }
         }
         return scores.sorted()[scores.size / 2]
     }

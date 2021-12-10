@@ -19,12 +19,18 @@ class Day10 {
     fun testOne(input: List<String>) {
         one(sample.lines()) shouldBe 26397
         one(input) shouldBe 166191
+
+        oneK(sample.lines()) shouldBe 26397
+        oneK(input) shouldBe 166191
     }
 
     @Test
     fun testTwo(input: List<String>) {
         two(sample.lines()) shouldBe 288957L
         two(input) shouldBe 1152088313L
+
+        twoK(sample.lines()) shouldBe 288957L
+        twoK(input) shouldBe 1152088313L
     }
 
     private fun one(input: List<String>): Int {
@@ -70,6 +76,49 @@ class Day10 {
         }
         return scores.sorted()[scores.size / 2]
     }
+
+    private fun oneK(input: List<String>): Int {
+        val pairs = mapOf('(' to ')', '[' to ']', '{' to '}', '<' to '>')
+        return input.sumOf { line ->
+            val stack = mutableListOf<Char>()
+            var score = 0
+            for (c in line) {
+                when (c) {
+                    in pairs.keys -> stack.add(c)
+                    pairs[stack.lastOrNull()] -> stack.removeLast()
+                    else -> {
+                        score = when (c) {
+                            ')' -> 3
+                            ']' -> 57
+                            '}' -> 1197
+                            '>' -> 25137
+                            else -> 0
+                        }
+                        break
+                    }
+                }
+            }
+            score
+        }
+    }
+
+    private fun twoK(input: List<String>): Long {
+        val pairs = mapOf('(' to ')', '[' to ']', '{' to '}', '<' to '>')
+        return input.map { line ->
+            val stack = mutableListOf<Char>()
+            for (c in line) {
+                when (c) {
+                    in pairs.keys -> stack.add(c)
+                    pairs[stack.lastOrNull()] -> stack.removeLast()
+                    else -> {
+                        stack.clear()
+                        break
+                    }
+                }
+            }
+            stack.foldRight(0L) { c, acc -> 5 * acc + pairs.keys.indexOf(c) + 1 }
+        }.filter { it != 0L }.sorted().let { it[it.size / 2] }
+    }
 }
 
 // This was pretty simple. I first thought of counting nesting levels, but then decided to simply remove
@@ -77,3 +126,6 @@ class Day10 {
 // remainder.  Part 1 then simply removes all the opening characters, and the first remaining is the
 // character we are looking for. Part 2 is equally simple: to complete the line, we need to emit the
 // matching closing characters in reverse order.
+//
+// Update: Inspired by Avinash and some solutions from Slack, I added 2 more traditional stack-based
+// solutions.  Pretty sure they are faster than my original solution.

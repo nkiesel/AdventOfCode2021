@@ -79,6 +79,7 @@ class Day10 {
 
     private fun oneK(input: List<String>): Int {
         val pairs = mapOf('(' to ')', '[' to ']', '{' to '}', '<' to '>')
+        val scores = mapOf(')' to 3, ']' to 57, '}' to 1197, '>' to 25137)
         return input.sumOf { line ->
             val stack = mutableListOf<Char>()
             var score = 0
@@ -87,13 +88,7 @@ class Day10 {
                     in pairs.keys -> stack.add(c)
                     pairs[stack.lastOrNull()] -> stack.removeLast()
                     else -> {
-                        score = when (c) {
-                            ')' -> 3
-                            ']' -> 57
-                            '}' -> 1197
-                            '>' -> 25137
-                            else -> 0
-                        }
+                        score = scores[c] ?: 0
                         break
                     }
                 }

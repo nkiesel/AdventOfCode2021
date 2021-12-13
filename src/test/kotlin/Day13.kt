@@ -71,25 +71,11 @@ class Day13 {
     }
 
     private fun foldLeft(dots: Set<Dot>, amount: Int): Set<Dot> {
-        return buildSet {
-            for (dot in dots) {
-                when {
-                    dot.x < amount -> add(dot)
-                    else -> add(Dot(2 * amount - dot.x, dot.y))
-                }
-            }
-        }
+        return dots.mapTo(mutableSetOf()) { dot -> if (dot.x < amount) dot else Dot(2 * amount - dot.x, dot.y) }
     }
 
     private fun foldUp(dots: Set<Dot>, amount: Int): Set<Dot> {
-        return buildSet {
-            for (dot in dots) {
-                when {
-                    dot.y < amount -> add(dot)
-                    else -> add(Dot(dot.x, 2 * amount - dot.y))
-                }
-            }
-        }
+        return dots.mapTo(mutableSetOf()) { dot -> if (dot.y < amount) dot else Dot(dot.x, 2 * amount - dot.y) }
     }
 
     private fun display(dots: Set<Dot>) {

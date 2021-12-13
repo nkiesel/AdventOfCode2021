@@ -66,7 +66,6 @@ class Day13 {
 
         if (folds != Int.MAX_VALUE) return dots.size
         display(dots)
-        Pair
         return 0
     }
 

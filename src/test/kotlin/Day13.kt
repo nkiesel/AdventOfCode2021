@@ -26,7 +26,6 @@ class Day13 {
         fold along x=5
 """.trimIndent()
 
-
     @Test
     fun testOne(input: List<String>) {
         one(sample.lines(), 1) shouldBe 17
@@ -40,10 +39,10 @@ class Day13 {
     }
 
     data class Dot(val x: Int, val y: Int)
-
     data class Instruction(val axis: String, val amount: Int)
+    data class Input(val dots: Set<Dot>, val instructions: List<Instruction>)
 
-    private fun parse(input: List<String>): Pair<Set<Dot>, List<Instruction>> {
+    private fun parse(input: List<String>): Input {
         val dots = mutableSetOf<Dot>()
         val instructions = mutableListOf<Instruction>()
         for (line in input) {
@@ -52,7 +51,7 @@ class Day13 {
                 line.startsWith("fold") -> instructions += line.split(" ")[2].split("=").let { Instruction(it[0], it[1].toInt())}
             }
         }
-        return dots to instructions
+        return Input(dots, instructions)
     }
 
     private fun one(input: List<String>, folds: Int = Int.MAX_VALUE): Int {
@@ -67,15 +66,16 @@ class Day13 {
 
         if (folds != Int.MAX_VALUE) return dots.size
         display(dots)
+        Pair
         return 0
     }
 
     private fun foldLeft(dots: Set<Dot>, amount: Int): Set<Dot> {
-        return dots.mapTo(mutableSetOf()) { dot -> if (dot.x < amount) dot else Dot(2 * amount - dot.x, dot.y) }
+        return dots.mapTo(mutableSetOf()) { dot -> if (dot.x <= amount) dot else Dot(2 * amount - dot.x, dot.y) }
     }
 
     private fun foldUp(dots: Set<Dot>, amount: Int): Set<Dot> {
-        return dots.mapTo(mutableSetOf()) { dot -> if (dot.y < amount) dot else Dot(dot.x, 2 * amount - dot.y) }
+        return dots.mapTo(mutableSetOf()) { dot -> if (dot.y <= amount) dot else Dot(dot.x, 2 * amount - dot.y) }
     }
 
     private fun display(dots: Set<Dot>) {
@@ -100,3 +100,5 @@ class Day13 {
 // This was (AFAIK) the first puzzle where the result was not immediately
 // computable. I was tempted to implement some OCR, but then realized that
 // I do not really know the shape of all the letters.
+// Update: minor code cleanup: added a `Input` class.  Thanks to `Pair`
+// being a data class, that was a very un-intrusive change.

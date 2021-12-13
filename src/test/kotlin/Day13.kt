@@ -47,7 +47,7 @@ class Day13 {
         val instructions = mutableListOf<Instruction>()
         for (line in input) {
             when {
-                line.contains(",") -> dots += line.split(",").map(String::toInt).let { Dot(it[0], it[1]) }
+                line.contains(",") -> dots += line.split(",").let { Dot(it[0].toInt(), it[1].toInt()) }
                 line.startsWith("fold") -> instructions += line.split(" ")[2].split("=").let { Instruction(it[0], it[1].toInt())}
             }
         }

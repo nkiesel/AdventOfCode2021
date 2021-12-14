@@ -29,3 +29,18 @@ fun <T> List<T>.chunkedBy(selector: (T) -> Boolean): List<List<T>> =
         }
         acc
     }
+
+class CountingMap<T>(
+    l: List<T> = emptyList(),
+    private val m: MutableMap<T, MutableLong> = mutableMapOf()
+) : MutableMap<T, CountingMap.MutableLong> by m {
+    init {
+        l.forEach { inc(it) }
+    }
+
+    class MutableLong(var value: Long)
+
+    fun inc(k: T, amount: Long = 1L) {
+        m.getOrPut(k) { MutableLong(0L) }.value += amount
+    }
+}

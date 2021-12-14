@@ -27,12 +27,15 @@ class Day14 {
     fun testOne(input: List<String>) {
         one(sample.lines()) shouldBe 1588
         one(input) shouldBe 4244
+
+        two(sample.lines(), 10) shouldBe 1588L
+        two(input, 10) shouldBe 4244L
     }
 
     @Test
     fun testTwo(input: List<String>) {
-        two(sample.lines()) shouldBe 2188189693529L
-        two(input) shouldBe 4807056953866L
+        two(sample.lines(), 40) shouldBe 2188189693529L
+        two(input, 40) shouldBe 4807056953866L
     }
 
     data class Input(val template: String, val rules: Map<String, Char>)
@@ -60,14 +63,16 @@ class Day14 {
 
     class CountingMap<T>(
         l: List<T> = emptyList(),
-        private val m: MutableMap<T, Long> = mutableMapOf<T, Long>().withDefault { 0L }
-    ) : MutableMap<T, Long> by m {
+        private val m: MutableMap<T, MutableLong> = mutableMapOf()
+    ) : MutableMap<T, CountingMap.MutableLong> by m {
         init {
             l.forEach { inc(it) }
         }
 
+        class MutableLong(var value: Long)
+
         fun inc(k: T, amount: Long = 1L) {
-            m[k] = m.getValue(k) + amount
+            m.getOrPut(k) { MutableLong(0L) }.value += amount
         }
     }
 
@@ -75,22 +80,24 @@ class Day14 {
         val keys = k.toList().let { (a, b) -> listOf("$a$char", "$char$b") }
     }
 
-    private fun two(input: List<String>): Long {
+    private fun two(input: List<String>, runs: Int): Long {
         val (template, rules) = parse(input)
         val rules1 = rules.mapValues { (k, v) -> Rule(k, v) }
-        val counts = CountingMap(template.toList())
+        val chars = CountingMap(template.toList())
         var parts = CountingMap(template.windowed(2, partialWindows = false))
-        repeat(40) {
+
+        repeat(runs) {
             val next = CountingMap<String>()
             for ((key, count) in parts) {
                 rules1[key]?.let { r ->
-                    r.keys.forEach { next.inc(it, count) }
-                    counts.inc(r.char, count)
+                    r.keys.forEach { next.inc(it, count.value) }
+                    chars.inc(r.char, count.value)
                 }
             }
             parts = next
         }
-        return counts.values.maxOf { it } - counts.values.minOf { it }
+
+        return chars.values.maxOf { it.value } - chars.values.minOf { it.value }
     }
 }
 
@@ -103,5 +110,8 @@ class Day14 {
 // in every expansion.
 // I obviously could have then replaced the approach for part 2 to solve part 1, but I
 // decided to keep the initial solution to keep myself honest.
-// Update: used `.withDefault { 0L }` and `getValue` in `CountingMap`.
-// Update2: added `class Rule` to isolate the key calculations
+// Update 1: used `.withDefault { 0L }` and `getValue` in `CountingMap`.
+// Update 2: added `class Rule` to isolate the key calculations
+// Update 3: used `MutableLong` in `CountingMap`
+// Update 4: also added calls of `two` to `testOne` to emphasize that `two` is a faster
+// version of `one`

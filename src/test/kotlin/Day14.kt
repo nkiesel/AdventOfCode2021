@@ -71,18 +71,21 @@ class Day14 {
         }
     }
 
+    class Rule(k: String, val char: Char) {
+        val keys = k.toList().let { (a, b) -> listOf("$a$char", "$char$b") }
+    }
+
     private fun two(input: List<String>): Long {
         val (template, rules) = parse(input)
+        val rules1 = rules.mapValues { (k, v) -> Rule(k, v) }
         val counts = CountingMap(template.toList())
         var parts = CountingMap(template.windowed(2, partialWindows = false))
         repeat(40) {
             val next = CountingMap<String>()
             for ((key, count) in parts) {
-                rules[key]?.let { r->
-                    val (a, b) = key.toList()
-                    next.inc("$a$r", count)
-                    next.inc("$r$b", count)
-                    counts.inc(r, count)
+                rules1[key]?.let { r ->
+                    r.keys.forEach { next.inc(it, count) }
+                    counts.inc(r.char, count)
                 }
             }
             parts = next
@@ -101,3 +104,4 @@ class Day14 {
 // I obviously could have then replaced the approach for part 2 to solve part 1, but I
 // decided to keep the initial solution to keep myself honest.
 // Update: used `.withDefault { 0L }` and `getValue` in `CountingMap`.
+// Update2: added `class Rule` to isolate the key calculations

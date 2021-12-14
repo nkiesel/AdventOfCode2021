@@ -60,14 +60,14 @@ class Day14 {
 
     class CountingMap<T>(
         l: List<T> = emptyList(),
-        private val m: MutableMap<T, Long> = mutableMapOf()
+        private val m: MutableMap<T, Long> = mutableMapOf<T, Long>().withDefault { 0L }
     ) : MutableMap<T, Long> by m {
         init {
             l.forEach { inc(it) }
         }
 
         fun inc(k: T, amount: Long = 1L) {
-            m[k] = (m[k] ?: 0L) + amount
+            m[k] = m.getValue(k) + amount
         }
     }
 
@@ -100,3 +100,4 @@ class Day14 {
 // in every expansion.
 // I obviously could have then replaced the approach for part 2 to solve part 1, but I
 // decided to keep the initial solution to keep myself honest.
+// Update: used `.withDefault { 0L }` and `getValue` in `CountingMap`.

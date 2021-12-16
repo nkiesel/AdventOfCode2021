@@ -50,16 +50,16 @@ class Day16 {
     ) {
         fun versionSum(): Int = version + subPackets.sumOf { it.versionSum() }
 
-        fun compute(): Long {
-            return when (typeId) {
-                Type.SUM -> subPackets.map { it.compute() }.reduce(Long::plus)
-                Type.PRODUCT -> subPackets.map { it.compute() }.reduce(Long::times)
-                Type.MINIMUM -> subPackets.map { it.compute() }.minOf { it }
-                Type.MAXIMUM -> subPackets.map { it.compute() }.maxOf { it }
+        fun compute(): Long = subPackets.map { it.compute() }.let { values ->
+            when (typeId) {
+                Type.SUM -> values.reduce(Long::plus)
+                Type.PRODUCT -> values.reduce(Long::times)
+                Type.MINIMUM -> values.minOf { it }
+                Type.MAXIMUM -> values.maxOf { it }
                 Type.LITERAL -> value
-                Type.GREATER_THAN -> subPackets.map { it.compute() }.let { if (it[0] > it[1]) 1L else 0L }
-                Type.LESS_THAN -> subPackets.map { it.compute() }.let { if (it[0] < it[1]) 1L else 0L }
-                Type.EQUAL_TO -> subPackets.map { it.compute() }.let { if (it[0] == it[1]) 1L else 0L }
+                Type.GREATER_THAN -> values.let { if (it[0] > it[1]) 1L else 0L }
+                Type.LESS_THAN -> values.let { if (it[0] < it[1]) 1L else 0L }
+                Type.EQUAL_TO -> values.let { if (it[0] == it[1]) 1L else 0L }
             }
         }
     }
@@ -68,19 +68,17 @@ class Day16 {
         val version = data.int(3)
         return when (val typeId = Type.fromInt(data.int(3))) {
             Type.LITERAL -> Packet(version, typeId, value = buildString {
-                while (true) {
-                    val last = data.int(1) == 0
+                var more: Boolean
+                do {
+                    more = data.int(1) == 1
                     append(data.str(4))
-                    if (last) break
-                }
+                } while (more)
             }.toLong(2))
             else -> Packet(version, typeId, subPackets = buildList {
                 if (data.int(1) == 0) {
                     val length = data.int(15)
                     val end = data.offset + length
-                    while (data.offset < end) {
-                        add(parse(data))
-                    }
+                    while (data.offset < end) add(parse(data))
                 } else {
                     val times = data.int(11)
                     repeat(times) { add(parse(data)) }
@@ -94,7 +92,7 @@ class Day16 {
     private fun two(input: String) = parse(Data.of(input)).compute()
 }
 
-// This was fun.  The only real hurdle was that I forgot to pad the binary values to 4 digits.  I then
-// used a map which works but is not really elegant.  Then I asked on Slack and Roman Elizarov pointed
-// me to `padStart`.  I polished the code a bit (e.g. adding an enum for the type), but overall this
-// was a pretty straight-forward puzzle.
+// This was fun!  The only real hurdle was that I forgot to pad the binary values to 4 digits.  I then first
+// used a map which worked but was not really elegant.  Finally, I asked on Slack and Roman Elizarov pointed
+// me to `padStart`.  I polished the code a bit (e.g. adding an enum for the type), but overall this was a
+// pretty straight-forward puzzle.

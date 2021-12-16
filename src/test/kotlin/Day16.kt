@@ -53,12 +53,17 @@ class Day16 {
         SUM(0), PRODUCT(1), MINIMUM(2), MAXIMUM(3), LITERAL(4), GREATER_THAN(5), LESS_THAN(6), EQUAL_TO(7);
 
         companion object {
-            fun fromInt(i: Int) = enumValues<Type>().first { it.id == i }
+            private val lookup = enumValues<Type>().associateBy { it.id }
+            fun fromInt(i: Int) = lookup.getValue(i)
         }
     }
 
-    class Packet(val version: Int, val typeId: Type, val value: Long = 0L, val subPackets: List<Packet> = emptyList()) {
-
+    class Packet(
+        private val version: Int,
+        private val typeId: Type,
+        val value: Long = 0L,
+        val subPackets: List<Packet> = emptyList()
+    ) {
         fun versionSum(): Int = version + subPackets.sumOf { it.versionSum() }
 
         fun compute(): Long {
@@ -107,7 +112,6 @@ class Day16 {
 
     private fun two(input: String): Long {
         val data = Data(input.map { toBits[it] }.joinToString(""))
-        val packet = parse(data)
-        return packet.compute()
+        return parse(data).compute()
     }
 }

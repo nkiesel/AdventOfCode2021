@@ -2,25 +2,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class Day16 {
-    private val toBits = mapOf(
-        '0' to "0000",
-        '1' to "0001",
-        '2' to "0010",
-        '3' to "0011",
-        '4' to "0100",
-        '5' to "0101",
-        '6' to "0110",
-        '7' to "0111",
-        '8' to "1000",
-        '9' to "1001",
-        'A' to "1010",
-        'B' to "1011",
-        'C' to "1100",
-        'D' to "1101",
-        'E' to "1110",
-        'F' to "1111",
-    )
-
     @Test
     fun testOne(input: List<String>) {
         one("D2FE28") shouldBe 6
@@ -47,6 +28,9 @@ class Day16 {
         var offset = 0
         fun str(bits: Int) = data.substring(offset, offset + bits).also { offset += bits }
         fun int(bits: Int) = str(bits).toInt(2)
+        companion object {
+            fun of(input: String) = Data(input.map { it.digitToInt(16).toString(2).padStart(4, '0') }.joinToString(""))
+        }
     }
 
     enum class Type(val id: Int) {
@@ -105,13 +89,12 @@ class Day16 {
         }
     }
 
-    private fun one(input: String): Int {
-        val data = Data(input.map { toBits[it] }.joinToString(""))
-        return parse(data).versionSum()
-    }
+    private fun one(input: String) = parse(Data.of(input)).versionSum()
 
-    private fun two(input: String): Long {
-        val data = Data(input.map { toBits[it] }.joinToString(""))
-        return parse(data).compute()
-    }
+    private fun two(input: String) = parse(Data.of(input)).compute()
 }
+
+// This was fun.  The only real hurdle was that I forgot to pad the binary values to 4 digits.  I then
+// used a map which works but is not really elegant.  Then I asked on Slack and Roman Elizarov pointed
+// me to `padStart`.  I polished the code a bit (e.g. adding an enum for the type), but overall this
+// was a pretty straight-forward puzzle.

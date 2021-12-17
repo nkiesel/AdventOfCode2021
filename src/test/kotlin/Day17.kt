@@ -1,3 +1,4 @@
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -21,10 +22,11 @@ class Day17 {
         while (xFirst * (xFirst + 1) / 2 < xRange.first) xFirst++
         var xLast = xFirst
         while (xLast * (xLast + 1) / 2 <= xRange.last) xLast++
+        val yLast = yRange.first.absoluteValue
         var maxY = Int.MIN_VALUE
         for (x in xFirst until xLast) {
             val yFirst = (yRange.last + (x * (x + 1) / 2)) / x
-            for (y in (yFirst..yFirst + 10000)) {
+            for (y in (yFirst..yLast)) {
                 shoot(x, y, xRange, yRange)?.let {  maxY = max(maxY, it) }
             }
         }
@@ -57,9 +59,10 @@ class Day17 {
         val (xRange, yRange) = parse(input)
         var xFirst = 1
         while (xFirst * (xFirst + 1) / 2 < xRange.first) xFirst++
+        val yLast = yRange.first.absoluteValue
         var result = 0
         for (x in xFirst..xRange.last) {
-            for (y in (yRange.first..yRange.last + 10000)) {
+            for (y in (yRange.first..yLast)) {
                 if (shoot(x, y, xRange, yRange) != null) {
                     result++
                 }
@@ -86,3 +89,8 @@ class Day17 {
 // smallest y initial value cannot be smaller than the lower y target area because otherwise
 // the fist shot already end up under the target area.  Again, I have no idea how to compute
 // (or even guess with confidence) the upper bound.
+//
+// Update 1: after reading a bit on Slack, someone claimed that - as long as the initial
+// vertical velocity is positive - the probe will always hit the starting line again.
+// Therefore, the next step must be less than the distance to the lower y target area
+// boundary.  That reduced the execution times by a factor of 100.

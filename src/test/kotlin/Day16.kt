@@ -45,8 +45,8 @@ class Day16 {
     class Packet(
         private val version: Int,
         private val typeId: Type,
-        val value: Long = 0L,
-        val subPackets: List<Packet> = emptyList()
+        private val value: Long = 0L,
+        private val subPackets: List<Packet> = emptyList()
     ) {
         fun versionSum(): Int = version + subPackets.sumOf { it.versionSum() }
 
@@ -57,9 +57,9 @@ class Day16 {
                 Type.MINIMUM -> values.minOf { it }
                 Type.MAXIMUM -> values.maxOf { it }
                 Type.LITERAL -> value
-                Type.GREATER_THAN -> values.let { if (it[0] > it[1]) 1L else 0L }
-                Type.LESS_THAN -> values.let { if (it[0] < it[1]) 1L else 0L }
-                Type.EQUAL_TO -> values.let { if (it[0] == it[1]) 1L else 0L }
+                Type.GREATER_THAN -> if (values[0] > values[1]) 1L else 0L
+                Type.LESS_THAN -> if (values[0] < values[1]) 1L else 0L
+                Type.EQUAL_TO -> if (values[0] == values[1]) 1L else 0L
             }
         }
     }
@@ -68,21 +68,21 @@ class Day16 {
         val version = data.int(3)
         return when (val typeId = Type.fromInt(data.int(3))) {
             Type.LITERAL -> Packet(version, typeId, value = buildString {
-                var more: Boolean
+                var moreBits: Boolean
                 do {
-                    more = data.int(1) == 1
+                    moreBits = data.int(1) == 1
                     append(data.str(4))
-                } while (more)
+                } while (moreBits)
             }.toLong(2))
             else -> Packet(version, typeId, subPackets = buildList {
-                if (data.int(1) == 0) {
-                    val length = data.int(15)
-                    val end = data.offset + length
-                    while (data.offset < end) add(parse(data))
+                val moreSubPackets = if (data.int(1) == 0) {
+                    val end = data.int(15) + data.offset
+                    { data.offset < end }
                 } else {
-                    val times = data.int(11)
-                    repeat(times) { add(parse(data)) }
+                    var times = data.int(11);
+                    { times-- > 0 }
                 }
+                while (moreSubPackets()) add(parse(data))
             })
         }
     }

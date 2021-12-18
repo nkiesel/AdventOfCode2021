@@ -41,17 +41,13 @@ class Day18 {
     }
 
     class Fish(private var body: String) {
-        infix operator fun plus(other: Fish) = Fish("[$this,$other]").reduced()
+        infix operator fun plus(other: Fish) = Fish("[$this,$other]").apply {
+            while (true) {
+                explode() || split() || break
+            }
+        }
 
         override fun toString() = body
-
-        private fun reduced(): Fish {
-            var more: Boolean
-            do {
-                more = explode() || split()
-            } while (more)
-            return this
-        }
 
         private fun explode(): Boolean {
             val iterator = body.iterator().withIndex()
@@ -66,9 +62,9 @@ class Day18 {
                     body = buildString {
                         val before = body.substring(0, i.index)
                         val (left, right, after) = Regex("""(\d+),(\d+)](.+)""").matchEntire(body.substring(i.index + 1))!!.destructured
-                        append(Regex("""(\d+)([^\d]+)$""").replaceFirst(before) { m -> m.destructured.let { (n, r) -> "${n.toInt() + left.toInt()}$r" }})
+                        append(Regex("""(\d+)([^\d]+)$""").replaceFirst(before) { it.destructured.let { (n, r) -> "${n.toInt() + left.toInt()}$r" }})
                         append("0")
-                        append(Regex("""(\d+)""").replaceFirst(after) { m -> m.destructured.let { (n) -> (n.toInt() + right.toInt()).toString() }})
+                        append(Regex("""(\d+)""").replaceFirst(after) { it.destructured.let { (n) -> (n.toInt() + right.toInt()).toString() }})
                     }
                     return true
                 }
@@ -86,13 +82,11 @@ class Day18 {
 
         fun magnitude(): Int {
             val r = Regex("""\[(\d+),(\d+)]""")
-            var after = body
-            var before: String
+            var b = body
             do {
-                before = after
-                after = r.replace(before) { m -> m.destructured.let { (l, r) -> (l.toInt() * 3 + r.toInt() * 2).toString() }}
-            } while (before != after)
-            return after.toInt()
+                b = r.replace(b) { it.destructured.let { (l, r) -> (l.toInt() * 3 + r.toInt() * 2).toString() }}
+            } while (b.startsWith('['))
+            return b.toInt()
         }
     }
 }
@@ -121,3 +115,5 @@ fun Regex.replaceFirst(input: CharSequence, transform: (MatchResult) -> CharSequ
 //
 // Update 1: added the "missing" regex method and with that, code becomes nicer.  Would be even nicer if we also had a
 // "replaceLast" method.
+//
+// Update 2: Inlined and simplified the `reduced()` method and simplified the `magnitude()` method

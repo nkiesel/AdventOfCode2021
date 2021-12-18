@@ -30,8 +30,15 @@ class Day18 {
     }
 
     fun two(input: List<String>): Int {
-        val fish = input.mapIndexed { i, f -> i to Fish(f) }.toMap()
-        return fish.flatMap { (i, f) -> (fish - i).let { g -> g.values.map { f + it } } }.maxOf { it.magnitude() }
+        return input.map { Fish(it) }.let { fish ->
+            sequence {
+                for ((i, x) in fish.withIndex()) {
+                    for ((j, y) in fish.withIndex()) {
+                        if (i != j) yield(x + y)
+                    }
+                }
+            }
+        }.maxOf { it.magnitude() }
     }
 
     private fun sum(input: List<String>): Fish {
@@ -117,3 +124,5 @@ fun Regex.replaceFirst(input: CharSequence, transform: (MatchResult) -> CharSequ
 // "replaceLast" method.
 //
 // Update 2: Inlined and simplified the `reduced()` method and simplified the `magnitude()` method
+//
+// Update 3: stole the "part 2" approach from https://github.com/ephemient/aoc2021 (not shorter but nicer)

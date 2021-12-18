@@ -1,4 +1,3 @@
-import kotlin.math.max
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -31,22 +30,17 @@ class Day18 {
     }
 
     fun two(input: List<String>): Int {
-        var maxMagnitude = 0
-        input.forEachIndexed { index1, line1 ->
-            input.forEachIndexed { index2, line2 ->
-                if (index1 != index2) {
-                    maxMagnitude = max(maxMagnitude, (Fish(line1) + Fish(line2)).magnitude())
-                }
-            }
-        }
-        return maxMagnitude
+        val fish = input.mapIndexed { i, f -> i to Fish(f) }.toMap()
+        return fish.flatMap { (i, f) -> (fish - i).let { g -> g.values.map { f + it } } }.maxOf { it.magnitude() }
     }
 
     private fun sum(input: List<String>): Fish {
+        val l = listOf(3,1,4)
+        l.sumOf { it.toLong() }
         return input.map { Fish(it) }.reduce { acc, fish -> acc + fish }
     }
 
-    class Fish(var body: String) {
+    class Fish(private var body: String) {
         infix operator fun plus(other: Fish) = Fish("[$this,$other]").reduced()
 
         override fun toString() = body
@@ -72,19 +66,9 @@ class Day18 {
                     body = buildString {
                         val before = body.substring(0, i.index)
                         val (left, right, after) = Regex("""(\d+),(\d+)](.+)""").matchEntire(body.substring(i.index + 1))!!.destructured
-                        val matchBefore = Regex("""(.+?)(\d+)([^\d]+)""").matchEntire(before)
-                        if (matchBefore == null) {
-                            append(before)
-                        } else {
-                            append(matchBefore.groupValues.let { "${it[1]}${it[2].toInt() + left.toInt()}${it[3]}" })
-                        }
+                        append(Regex("""(\d+)([^\d]+)$""").replaceFirst(before) { m -> m.destructured.let { (n, r) -> "${n.toInt() + left.toInt()}$r" }})
                         append("0")
-                        val matchAfter = Regex("""(.+?)(\d+)(.+)""").matchEntire(after)
-                        if (matchAfter == null) {
-                            append(after)
-                        } else {
-                            append(matchAfter.groupValues.let { "${it[1]}${it[2].toInt() + right.toInt()}${it[3]}" })
-                        }
+                        append(Regex("""(\d+)""").replaceFirst(after) { m -> m.destructured.let { (n) -> (n.toInt() + right.toInt()).toString() }})
                     }
                     return true
                 }
@@ -93,14 +77,15 @@ class Day18 {
         }
 
         private fun split(): Boolean {
-            val m = Regex("""(.+?)(\d{2,})(.+)""").matchEntire(body) ?: return false
-            val num = m.groupValues[2].toInt()
-            body = "${m.groupValues[1]}[${num / 2},${(num + 1) / 2}]${m.groupValues[3]}"
+            (Regex("""(.+?)(\d{2,})(.+)""").matchEntire(body) ?: return false).destructured.let { (before, num, after) ->
+                val n = num.toInt()
+                body = "$before[${n / 2},${(n + 1) / 2}]$after"
+            }
             return true
         }
 
         fun magnitude(): Int {
-            val r = Regex("""\[(\d+),(\d+)\]""")
+            val r = Regex("""\[(\d+),(\d+)]""")
             var after = body
             var before: String
             do {
@@ -112,6 +97,27 @@ class Day18 {
     }
 }
 
+// This should really be part of stdlib, see https://youtrack.jetbrains.com/issue/KT-50372
+fun Regex.replaceFirst(input: CharSequence, transform: (MatchResult) -> CharSequence): String {
+    val length = input.length
+    if (length == 0) return input.toString()
+
+    val match: MatchResult = find(input) ?: return input.toString()
+
+    val sb = StringBuilder(length)
+    sb.append(input, 0, match.range.first)
+    sb.append(transform(match))
+    val lastStart = match.range.last + 1
+    if (lastStart < length) {
+        sb.append(input, lastStart, length)
+    }
+
+    return sb.toString()
+}
+
 // This was fun again.  I first wrote code to parse the fish strings into a tree.  But then I realized that this "modify
 // the number left or right in the string" is much harder with the tree.  I then threw all of this away again and instead
 // used regex to modify the body according to the instructions.  This went well (some minor regex errors along the way).
+//
+// Update 1: added the "missing" regex method and with that, code becomes nicer.  Would be even nicer if we also had a
+// "replaceLast" method.

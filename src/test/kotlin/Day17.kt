@@ -1,5 +1,6 @@
 import kotlin.math.absoluteValue
 import kotlin.math.max
+import kotlin.math.sign
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -16,59 +17,44 @@ class Day17 {
         two(input.first()) shouldBe 1733
     }
 
-    private fun one(input: String): Int {
+    private fun parse(input: String): Pair<IntRange, IntRange> {
+        val (xRange, yRange) = Regex("""-?\d+""").findAll(input).map { it.groupValues[0].toInt() }.toList().let { it[0]..it[1] to it[2]..it[3] }
+        require(!xRange.isEmpty()) { "empty target area not supported" }
+        require(!yRange.isEmpty()) { "empty target area not supported" }
+        require(xRange.first > 0) { "target area must be to the right of the start" }
+        require(yRange.last < 0) { "target area must be below the start" }
+        return Pair(xRange, yRange)
+    }
+
+    private fun one(input: String) = hits(input).maxOf { it }
+
+    private fun two(input: String) = hits(input).count()
+
+    private fun hits(input: String): List<Int> {
         val (xRange, yRange) = parse(input)
-        var xFirst = 1
-        while (xFirst * (xFirst + 1) / 2 < xRange.first) xFirst++
-        var xLast = xFirst
-        while (xLast * (xLast + 1) / 2 <= xRange.last) xLast++
-        val yLast = yRange.first.absoluteValue
-        var maxY = Int.MIN_VALUE
-        for (x in xFirst until xLast) {
-            val yFirst = (yRange.last + (x * (x + 1) / 2)) / x
-            for (y in (yFirst..yLast)) {
-                shoot(x, y, xRange, yRange)?.let {  maxY = max(maxY, it) }
+        return (1..xRange.last).flatMap { x ->
+            (yRange.first..(yRange.first.absoluteValue + x)).mapNotNull { y ->
+                shoot(x, y, xRange, yRange)
             }
         }
-        return maxY
     }
 
     private fun shoot(x: Int, y: Int, xRange: IntRange, yRange: IntRange): Int? {
         var px = 0
         var py = 0
+        var maxY = 0
         var vx = x
         var vy = y
-        var maxY = 0
 
-        while (py >= yRange.first) {
+        while (px <= xRange.last && py >= yRange.first) {
             if (px in xRange && py in yRange) return maxY
             px += vx
             py += vy
-            if (py > maxY) maxY = py
-            if (vx > 0) vx -= 1
+            maxY = max(py, maxY)
+            vx -= vx.sign
             vy -= 1
         }
         return null
-    }
-
-    private fun parse(input: String): Pair<IntRange, IntRange> {
-        return Regex("""-?\d+""").findAll(input).map { it.groupValues[0].toInt() }.toList().let { it[0]..it[1] to it[2]..it[3] }
-    }
-
-    private fun two(input: String): Int {
-        val (xRange, yRange) = parse(input)
-        var xFirst = 1
-        while (xFirst * (xFirst + 1) / 2 < xRange.first) xFirst++
-        val yLast = yRange.first.absoluteValue
-        var result = 0
-        for (x in xFirst..xRange.last) {
-            for (y in (yRange.first..yLast)) {
-                if (shoot(x, y, xRange, yRange) != null) {
-                    result++
-                }
-            }
-        }
-        return result
     }
 }
 
@@ -94,3 +80,21 @@ class Day17 {
 // vertical velocity is positive - the probe will always hit the starting line again.
 // Therefore, the next step must be less than the distance to the lower y target area
 // boundary.  That reduced the execution times by a factor of 100.
+//
+// Update 2: Simplified the possible ranges further:
+//  1. assure that target area is to the right and below to starting point
+//  2. initial x velocity must be
+//    a) at least 1 or else probe will never reach the target area
+//    b) less than the right boundary of the target area because else the first shot will already overshoot
+//  3. initial y velocity must be
+//    a) at least the lower boundary of the target area because else the first shot will already undershoot
+//    b) less than the absolute value of the lower boundary of the target + x because this will be
+//       a positive number thus the probe will initially fly upward. This will ensure that the probe in
+//       one of it steps end up at vertical position 0 again. The next step after that must be smaller than
+//       the lower boundary of the target area or else we will miss the target area for sure. The
+//       vertical velocity at this point must be negative (the probe is falling), and thus its vertical
+//       velocity will increase with evey step.  We took at most "x" steps at this point, and thus the
+//       initial velocity was decreased by at most "x".  Therefore, any initial vertical velocity which
+//       is greater than the distance from 0 (the start) to the lower boundary of the target area plus "x"
+//       will overshoot the target area with the next step.
+// All of this resulted in the "final" solution which uses a common "hits" function for both parts.

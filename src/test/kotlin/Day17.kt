@@ -99,4 +99,8 @@ class Day17 {
 //       initial velocity was decreased by at most "x".  Therefore, any initial vertical velocity which
 //       is greater than the distance from 0 (the start) to the lower boundary of the target area plus "x"
 //       will overshoot the target area with the next step.
+// We could reduce the ranges further at least for part 1, because we know that negative initial vertical
+// velocity will never result in a possible solution, and that the initial horizontal velocity must be small
+// enough that the probe falls straight into the target area from close to its peak vertical position.  However,
+// this would complicate the code and this solution anyway finishes in less than 100ms.
 // All of this resulted in the "final" solution which uses a common "hits" function for both parts.

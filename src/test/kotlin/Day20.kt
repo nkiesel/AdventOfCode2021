@@ -47,10 +47,12 @@ class Day20 {
     }
 
     private fun List<String>.enlarge(n: Int, s: String): List<String> {
+        val topBottom = s.repeat(this[0].length + 2 * n)
+        val leftRight = s.repeat(n)
         val e = mutableListOf<String>()
-        repeat(n) { e.add(s.repeat(this[0].length + 2 * n)) }
-        this.forEach { line -> e.add(s.repeat(n) + line + s.repeat(n)) }
-        repeat(n) { e.add(s.repeat(this[0].length + 2 * n)) }
+        repeat(n) { e.add(topBottom) }
+        forEach { e.add(leftRight + it + leftRight) }
+        repeat(n) { e.add(topBottom) }
         return e
     }
 

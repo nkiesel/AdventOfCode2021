@@ -29,17 +29,20 @@ class Day21 {
     }
 
     private fun parse(input: List<String>): List<Player> {
-        return input.map { line -> Regex("""Player (\d+) starting position: (\d+)""")
-            .matchEntire(line)!!.let { Player(it.groupValues[1].toInt(), it.groupValues[2].toInt() - 1) } }
+        return input.map { line ->
+            Regex("""Player (\d+) starting position: (\d+)""")
+                .matchEntire(line)!!.let { Player(it.groupValues[1].toInt(), it.groupValues[2].toInt() - 1) }
+        }
     }
 
     class Die {
         var value = 0
         var rolled = 0
-        val die = sequence {
-            while (true) yield (value++ % 100 + 1)
+        private val die = sequence {
+            while (true) yield(value++ % 100 + 1)
         }
-        fun roll(n: Int = 1) = die.take(n).sum().also { rolled += n}
+
+        fun roll(n: Int = 1) = die.take(n).sum().also { rolled += n }
     }
 
     private fun one(players: List<Player>): Int {
@@ -53,8 +56,8 @@ class Day21 {
         }
     }
 
-    data class Universe(var score1: Int, var score2: Int, var position1: Int, var position2: Int, var turn: Int, var count: Long) {
-        fun score(n: Long) = outcomes.map { s -> copy(count = n).score(s) }
+    data class Universe(var score1: Int, var score2: Int, var position1: Int, var position2: Int, var turn: Int, val count: Long) {
+        fun score(n: Long) = outcomes.map { (s, c) -> copy(count = n * c).score(s) }
 
         private fun score(s: Int): Universe {
             if (turn == 1) {
@@ -71,9 +74,9 @@ class Day21 {
 
         companion object {
             val outcomes = listOf(1, 2, 3).let { x -> x.flatMap { a -> x.flatMap { b -> x.map { c -> a + b + c } } } }
+                .groupingBy { it }.eachCount()
         }
     }
-
 
     private fun two(players: List<Player>): Long {
         val first = Universe(0, 0, players[0].position, players[1].position, 1, 0L)
@@ -81,16 +84,24 @@ class Day21 {
         var w1 = 0L
         var w2 = 0L
         while (universes.isNotEmpty()) {
-//            println("w1: $w1 w2: $w2 u: ${universes.size}")
-            val nextUniverses = universes.entries.flatMap { (u, n) -> u.score(n) }.mapNotNull { u ->
-                when {
-                    u.score1 >= 21 -> { w1 += u.count; null }
-                    u.score2 >= 21 -> { w2 += u.count; null }
-                    else -> u
+            universes = universes.entries
+                .flatMap { (u, n) -> u.score(n) }
+                .onEach { u ->
+                    when {
+                        u.score1 >= 21 -> w1 += u.count
+                        u.score2 >= 21 -> w2 += u.count
+                    }
                 }
-            }
-            universes = nextUniverses.groupingBy { it }.fold(0L) { acc, u -> acc + u.count }
+                .filter { u -> u.score1 < 21 && u.score2 < 21 }
+                .groupingBy { it }
+                .fold(0L) { acc, u -> acc + u.count }
         }
         return max(w1, w2)
     }
 }
+
+// Part 1 was pretty simple.  From the expected result it was clear that the simple approach
+// from part 1 would not work for part 2.  I initially tried to use a "better" hash function,
+// but that did not work for some unknown reason. I then converted Universe to a data class,
+// and that produced the expected result.  Part 2 could be made even more compact by using
+// lists/arrays for the scores, positions, and win counts, but that might reduce readability.

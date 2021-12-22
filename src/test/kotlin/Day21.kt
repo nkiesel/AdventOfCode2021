@@ -56,18 +56,16 @@ class Day21 {
         }
     }
 
-    data class Universe(var score1: Int, var score2: Int, var position1: Int, var position2: Int, var turn: Int, val count: Long) {
-        fun score(n: Long) = outcomes.map { (s, c) -> copy(count = n * c).score(s) }
+    data class Universe(var score1: Int, var score2: Int, var position1: Int, var position2: Int, val count: Long) {
+        fun score(n: Long, turn: Int) = outcomes.map { (s, c) -> copy(count = n * c).score(s, turn) }
 
-        private fun score(s: Int): Universe {
+        private fun score(s: Int, turn: Int): Universe {
             if (turn == 1) {
                 position1 = (position1 + s) % 10
                 score1 += position1 + 1
-                turn = 2
             } else {
                 position2 = (position2 + s) % 10
                 score2 += position2 + 1
-                turn = 1
             }
             return this
         }
@@ -79,13 +77,14 @@ class Day21 {
     }
 
     private fun two(players: List<Player>): Long {
-        val first = Universe(0, 0, players[0].position, players[1].position, 1, 0L)
+        val first = Universe(0, 0, players[0].position, players[1].position, 0L)
         var universes = mapOf(first to 1L)
         var w1 = 0L
         var w2 = 0L
+        var turn = 1
         while (universes.isNotEmpty()) {
             universes = universes.entries
-                .flatMap { (u, n) -> u.score(n) }
+                .flatMap { (u, n) -> u.score(n, turn) }
                 .onEach { u ->
                     when {
                         u.score1 >= 21 -> w1 += u.count
@@ -95,6 +94,7 @@ class Day21 {
                 .filter { u -> u.score1 < 21 && u.score2 < 21 }
                 .groupingBy { it }
                 .fold(0L) { acc, u -> acc + u.count }
+            turn = if (turn == 1) 2 else 1
         }
         return max(w1, w2)
     }

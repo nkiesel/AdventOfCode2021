@@ -6,28 +6,28 @@ import org.junit.jupiter.api.Test
 
 class Day23 {
 
-/*
-        #############
-        #...........#
-        ###B#C#B#D###
-          #A#D#C#A#
-          #########
-
-        #############
-        #...........#
-        ###B#B#D#D###  
-          #C#C#A#A#
-          #########
-*/
-
     @Test
     fun testOne(input: List<String>) {
+        State.reset(2)
         solveOne(
             state("BCBD", "ADCA")
         ) shouldBe 12521
+        State.reset(2)
         solveOne(
             state("BBDD", "CCAA")
         ) shouldBe 10411
+    }
+
+    @Test
+    fun testTwo(input: List<String>) {
+        State.reset(4)
+        solveOne(
+            state("BCBD", "DCBA", "DBAC", "ADCA")
+        ) shouldBe 44169
+        State.reset(4)
+        solveOne(
+            state("BBDD", "DCBA", "DBAC", "CCAA")
+        ) shouldBe 46721
     }
 
     class State(private val rooms: Array<ArrayDeque<Char>>, private val hallway: CharArray = CharArray(11) { '.' }) {
@@ -40,6 +40,15 @@ class Day23 {
             private val roomGoals = listOf('A', 'B', 'C', 'D')
             var bestCostSoFar = Int.MAX_VALUE
             var bestStepsSoFar = emptyList<String>()
+            var roomCapacity = 2
+            val seen = mutableMapOf<String, Int>()
+
+            fun reset(capacity: Int) {
+                bestCostSoFar = Int.MAX_VALUE
+                bestStepsSoFar = emptyList()
+                roomCapacity = capacity
+                seen.clear()
+            }
         }
 
         fun deepCopy() = State(rooms.map { ArrayDeque(it.toList()) }.toTypedArray(), hallway.toList().toCharArray()).also { it.cost = cost }
@@ -51,6 +60,8 @@ class Day23 {
         fun done() = hallway.all { it == '.' } && rooms.withIndex().all { (index, room) -> room.all { it == roomGoals[index] } }
 
         private fun freeHallway(from: Int, to: Int) = hallway.slice(min(from, to)..max(from, to)).all { it == '.' }
+
+        fun fingerPrint() = rooms.joinToString("") { it.toList().toString() } + hallway.toList().toString()
 
         fun next(): List<String> {
             return buildList {
@@ -80,9 +91,9 @@ class Day23 {
                     val move = hallway[h]
                     if (move == '.') continue
                     val toNumber = toNumbers[move]!!
-                    val toHallwayIndex = toNumber * 2
                     val toRoom = possibleToRoom(toNumber)
                     if (toRoom != null) {
+                        val toHallwayIndex = toNumber * 2
                         if (toHallwayIndex < h && freeHallway(toHallwayIndex, h - 1)) {
                             add("r$toNumber")
                         } else if (toHallwayIndex > h && freeHallway(h + 1, toHallwayIndex)) {
@@ -121,7 +132,7 @@ class Day23 {
         private fun left(to: Char): Pair<Char, Int> {
             val toNumber = to.digitToInt()
             val toRoom = rooms[toNumber - 1]
-            val stepsIntoRoom = if (toRoom.isEmpty()) 2 else 1
+            val stepsIntoRoom = roomCapacity - toRoom.size
             var pos = toNumber * 2
             while (hallway[pos] == '.') pos--
             val move = hallway[pos]
@@ -134,7 +145,7 @@ class Day23 {
         private fun right(to: Char): Pair<Char, Int> {
             val toNumber = to.digitToInt()
             val toRoom = rooms[toNumber - 1]
-            val stepsIntoRoom = if (toRoom.isEmpty()) 2 else 1
+            val stepsIntoRoom = roomCapacity - toRoom.size
             var pos = toNumber * 2
             while (hallway[pos] == '.') pos++
             val move = hallway[pos]
@@ -149,11 +160,11 @@ class Day23 {
             val fromRoom = rooms[fromNumber - 1]
             val toRoom = rooms[toNumber - 1]
             val move = fromRoom.removeLast()
-            val stepsToHallway = if (fromRoom.isEmpty()) 2 else 1
+            val stepsToHallway = roomCapacity - fromRoom.size
             return Pair(move, stepsToHallway + when (to) {
                 'l' -> (horizontal).also { hallway[fromNumber * 2 - horizontal] = move }
                 'r' -> (horizontal).also { hallway[fromNumber * 2 + horizontal] = move }
-                else -> (abs(fromNumber - toNumber) * 2 + (if (toRoom.isEmpty()) 2 else 1)).also { toRoom.addLast(move) }
+                else -> (abs(fromNumber - toNumber) * 2 + roomCapacity - toRoom.size).also { toRoom.addLast(move) }
             })
         }
 
@@ -161,13 +172,11 @@ class Day23 {
             steps?.let { println("  $steps") }
             println("#############")
             println("#${hallway.joinToString("")}#")
-            println("###${top(rooms[0])}#${top(rooms[1])}#${top(rooms[2])}#${top(rooms[3])}###")
-            println("  #${bottom(rooms[0])}#${bottom(rooms[1])}#${bottom(rooms[2])}#${bottom(rooms[3])}#")
+            for (level in roomCapacity - 1 downTo 0) {
+                println(rooms.map { r -> r.getOrNull(level) ?: '.'}.joinToString(prefix = "###", separator = "#", postfix = "###"))
+            }
             println("  #########")
         }
-
-        fun bottom(q: ArrayDeque<Char>) = if (q.size >= 1) q.first() else "."
-        fun top(q: ArrayDeque<Char>) = if (q.size >= 2) q.last() else "."
     }
 
     fun one(state: State, steps: List<String>, print: Boolean = true): Int {
@@ -182,24 +191,23 @@ class Day23 {
     }
 
     private fun solveOne(state: State): Int {
+        state.render()
         val steps = listOf<String>()
         findAll(state, steps)
         println("-".repeat(60))
         return State.bestCostSoFar
     }
 
-    private fun state(top: String, bottom: String) = State(
-        arrayOf(
-            ArrayDeque(listOf(bottom[0], top[0])),
-            ArrayDeque(listOf(bottom[1], top[1])),
-            ArrayDeque(listOf(bottom[2], top[2])),
-            ArrayDeque(listOf(bottom[3], top[3])),
-        )
+    private fun state(vararg topToBottom: String) = State(
+        Array(4) { index -> ArrayDeque(topToBottom.reversed().map { it[index] } ) }
     )
 
     private fun findAll(state: State, previous: List<String>): List<List<String>>? {
-        require(previous.size <= 16) { "Too long steps: $previous" }
         if (state.cost >= State.bestCostSoFar) return null
+        val fp = state.fingerPrint()
+        val prev = State.seen[fp]
+        if (prev != null && prev < state.cost) return null
+        State.seen[fp] = state.cost
 
         if (state.done()) {
             if (state.cost < State.bestCostSoFar) {
@@ -216,3 +224,18 @@ class Day23 {
         return next.mapNotNull { s -> findAll(state.deepCopy().step(s, false), previous + s) }.flatten()
     }
 }
+
+// I took my time with this one.  First, I wrote the code to render a state, and then wrote the code to
+// transform a list of steps into a list of states. This allowed me to visualize the process.  After that,
+// I write the code to compute the possible next steps from a given state.  After that, it was mostly
+// mechanics (recursion, deciding when to stop, caching to avoid computing the same result multiple times).
+// Part 2 did not really need any code change besides fixing the hard-coded "rooms have a maximum capacity
+// of 2".
+// My state is pretty verbose, which adds to the overall computation time. In reality, the puzzle only has
+// (#rooms * room capacity) + 7 possible places, so a CharArray(23) would be enough to store all the rooms
+// and the hallway. In addition, my code has to compute and then split again the steps which is also wasteful.
+// However, the total time for producing results for both parts and for both the sample and actual input is
+// still less than 1.5 seconds.
+//
+// If I still will work on this, then what I really would like to do is create a GIF movie which shows the
+// resulting solution.

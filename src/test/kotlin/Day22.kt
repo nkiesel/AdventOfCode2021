@@ -3,13 +3,13 @@ import org.junit.jupiter.api.Test
 
 class Day22 {
 
-    val sample0 = """
+    private val sample0 = """
         on x=1..1,y=1..1,z=3..7
         on x=1..1,y=1..1,z=5..10
         off x=1..1,y=1..1,z=7..9
     """.trimIndent()
 
-    val sample1 = """
+    private val sample1 = """
         on x=-20..26,y=-36..17,z=-47..7
         on x=-20..33,y=-21..23,z=-26..28
         on x=-22..28,y=-29..23,z=-38..16
@@ -34,7 +34,7 @@ class Day22 {
         on x=967..23432,y=45373..81175,z=27513..53682
     """.trimIndent()
 
-    val sample2 = """
+    private val sample2 = """
         on x=-5..47,y=-31..22,z=-19..33
         on x=-44..5,y=-27..21,z=-14..35
         on x=-49..-1,y=-11..42,z=-10..38
@@ -100,19 +100,19 @@ class Day22 {
     @Test
     fun testOne(input: List<String>) {
         val range = -50..50
-        fun filter(c: Cube) = c.xs in range && c.xe in range && c.ys in range && c.ye in range && c.zs in range && c.xe in range
-        count(parse(sample0.lines()), ::filter) shouldBe 5L
-        count(parse(sample1.lines()), ::filter) shouldBe 590784L
-        count(parse(sample2.lines()), ::filter) shouldBe 474140L
-        count(parse(input), ::filter) shouldBe 606484L
+        val filter = { c: Cube -> c.xs in range && c.xe in range && c.ys in range && c.ye in range && c.zs in range && c.xe in range }
+        count(parse(sample0.lines()), filter) shouldBe 5L
+        count(parse(sample1.lines()), filter) shouldBe 590784L
+        count(parse(sample2.lines()), filter) shouldBe 474140L
+        count(parse(input), filter) shouldBe 606484L
     }
 
     @Test
     fun testTwo(input: List<String>) {
-        fun filter(c: Cube) = true
-        count(parse(sample0.lines()), ::filter) shouldBe 5L
-        count(parse(sample2.lines()), ::filter) shouldBe 2758514936282235L
-        count(parse(input), ::filter) shouldBe 1162571910364852L
+        val filter = { _: Cube -> true }
+        count(parse(sample0.lines()), filter) shouldBe 5L
+        count(parse(sample2.lines()), filter) shouldBe 2758514936282235L
+        count(parse(input), filter) shouldBe 1162571910364852L
     }
 
     class Cube(val xs: Int, val xe: Int, val ys: Int, val ye: Int, val zs: Int, val ze: Int, val on: Boolean)
@@ -160,7 +160,7 @@ class Day22 {
     }
 }
 
-// Hmm, struggled again.  The first part I initially solved using brute-force approach, but I know that this
+// Hmm, struggled again.  The first part I initially solved using brute-force approach, but I knew that this
 // would likely not work for part 2.  I tried anyway, but no result overnight....
 // I then thought of computing overlaps of cubes, or braking up cubes into non-overlapping cubes.  I still
 // think that would work.  For figuring out the approach, I simplified the problem to 1 dimension: a list

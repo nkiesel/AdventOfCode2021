@@ -38,14 +38,14 @@ class Day23 {
             private val stepCost = mapOf('A' to 1, 'B' to 10, 'C' to 100, 'D' to 1000)
             private val toNumbers = mapOf('A' to 1, 'B' to 2, 'C' to 3, 'D' to 4)
             private val roomGoals = listOf('A', 'B', 'C', 'D')
-            var bestCostSoFar = Int.MAX_VALUE
-            var bestStepsSoFar = emptyList<String>()
+            var bestCost = Int.MAX_VALUE
+            var bestSteps = emptyList<String>()
             var roomCapacity = 2
             val seen = mutableMapOf<String, Int>()
 
             fun reset(capacity: Int) {
-                bestCostSoFar = Int.MAX_VALUE
-                bestStepsSoFar = emptyList()
+                bestCost = Int.MAX_VALUE
+                bestSteps = emptyList()
                 roomCapacity = capacity
                 seen.clear()
             }
@@ -61,7 +61,7 @@ class Day23 {
 
         private fun freeHallway(from: Int, to: Int) = hallway.slice(min(from, to)..max(from, to)).all { it == '.' }
 
-        fun fingerPrint() = rooms.joinToString("") { it.toList().toString() } + hallway.toList().toString()
+        fun fingerprint() = rooms.joinToString("") { it.toList().toString() } + hallway.toList().toString()
 
         fun next(): List<String> {
             return buildList {
@@ -114,44 +114,32 @@ class Day23 {
             val horizontal = s.drop(2).takeUnless { it.isEmpty() }?.toInt() ?: 0
 
             val (move, actualSteps) = when (from) {
-                'l' -> left(to)
-                'r' -> right(to)
+                'l', 'r' -> hallway(from, to)
                 else -> room(from, to, horizontal)
             }
             val stepCost = stepCost[move]!! * actualSteps
             cost += stepCost
             count++
             if (print) {
-                render("$count: $move $from$to${if (to == 'l' || to == 'r') "$actualSteps" else ""}")
+                render("$count: $move $from$to${if (to == 'l' || to == 'r') "$horizontal" else ""}")
                 println("cost step=$stepCost total=$cost")
                 println()
             }
             return this
         }
 
-        private fun left(to: Char): Pair<Char, Int> {
+        private fun hallway(from: Char, to: Char): Pair<Char, Int> {
+            val direction = if (from == 'l') -1 else 1
             val toNumber = to.digitToInt()
             val toRoom = rooms[toNumber - 1]
             val stepsIntoRoom = roomCapacity - toRoom.size
             var pos = toNumber * 2
-            while (hallway[pos] == '.') pos--
+            while (hallway[pos] == '.') pos += direction
             val move = hallway[pos]
             hallway[pos] = '.'
             toRoom.addLast(move)
 
-            return Pair(move, toNumber * 2 - pos + stepsIntoRoom)
-        }
-
-        private fun right(to: Char): Pair<Char, Int> {
-            val toNumber = to.digitToInt()
-            val toRoom = rooms[toNumber - 1]
-            val stepsIntoRoom = roomCapacity - toRoom.size
-            var pos = toNumber * 2
-            while (hallway[pos] == '.') pos++
-            val move = hallway[pos]
-            hallway[pos] = '.'
-            toRoom.addLast(move)
-            return Pair(move, pos - toNumber * 2 + stepsIntoRoom)
+            return Pair(move, direction * (pos - toNumber * 2) + stepsIntoRoom)
         }
 
         private fun room(from: Char, to: Char, horizontal: Int = 0): Pair<Char, Int> {
@@ -161,9 +149,9 @@ class Day23 {
             val toRoom = rooms[toNumber - 1]
             val move = fromRoom.removeLast()
             val stepsToHallway = roomCapacity - fromRoom.size
+            val direction = if (to == 'l') -1 else 1
             return Pair(move, stepsToHallway + when (to) {
-                'l' -> (horizontal).also { hallway[fromNumber * 2 - horizontal] = move }
-                'r' -> (horizontal).also { hallway[fromNumber * 2 + horizontal] = move }
+                'l', 'r' -> (horizontal).also { hallway[fromNumber * 2 + horizontal * direction] = move }
                 else -> (abs(fromNumber - toNumber) * 2 + roomCapacity - toRoom.size).also { toRoom.addLast(move) }
             })
         }
@@ -173,7 +161,7 @@ class Day23 {
             println("#############")
             println("#${hallway.joinToString("")}#")
             for (level in roomCapacity - 1 downTo 0) {
-                println(rooms.map { r -> r.getOrNull(level) ?: '.'}.joinToString(prefix = "###", separator = "#", postfix = "###"))
+                println(rooms.map { it.getOrNull(level) ?: '.' }.joinToString(prefix = "###", separator = "#", postfix = "###"))
             }
             println("  #########")
         }
@@ -192,36 +180,32 @@ class Day23 {
 
     private fun solveOne(state: State): Int {
         state.render()
-        val steps = listOf<String>()
-        findAll(state, steps)
+        findAll(state, emptyList())
         println("-".repeat(60))
-        return State.bestCostSoFar
+        return State.bestCost
     }
 
     private fun state(vararg topToBottom: String) = State(
-        Array(4) { index -> ArrayDeque(topToBottom.reversed().map { it[index] } ) }
+        Array(4) { index -> ArrayDeque(topToBottom.reversed().map { it[index] }) }
     )
 
-    private fun findAll(state: State, previous: List<String>): List<List<String>>? {
-        if (state.cost >= State.bestCostSoFar) return null
-        val fp = state.fingerPrint()
-        val prev = State.seen[fp]
-        if (prev != null && prev < state.cost) return null
-        State.seen[fp] = state.cost
+    private fun findAll(state: State, steps: List<String>) {
+        if (State.bestCost < state.cost) return
+        if (State.seen.getOrPut(state.fingerprint()) { state.cost } < state.cost) return
 
         if (state.done()) {
-            if (state.cost < State.bestCostSoFar) {
-                println("${state.cost}: $previous")
-                State.bestCostSoFar = state.cost
-                State.bestStepsSoFar = previous
+            if (state.cost < State.bestCost) {
+                println("${state.cost}: $steps")
+                State.bestCost = state.cost
+                State.bestSteps = steps
             }
-            return null
+            return
         }
 
         val next = state.next()
-        if (next.isEmpty()) return null
+        if (next.isEmpty()) return
 
-        return next.mapNotNull { s -> findAll(state.deepCopy().step(s, false), previous + s) }.flatten()
+        next.forEach { s -> findAll(state.deepCopy().step(s, false), steps + s) }
     }
 }
 

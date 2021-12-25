@@ -9,9 +9,9 @@ class Day24 {
     }
 
     fun one(input: List<String>): Long {
-        val alu = Alu(input, 9L downTo 1L)
+        val alu = Alu(input, 9 downTo 1)
 //        println(alu)
-        alu.level(0, LongArray(4))
+        alu.level(0, IntArray(4))
         return alu.solution.joinToString("") { it.toString() }.toLong()
     }
 
@@ -22,17 +22,17 @@ class Day24 {
     }
 
     fun two(input: List<String>): Long {
-        val alu = Alu(input, 1L..9L)
+        val alu = Alu(input, 1..9)
 //        println(alu)
-        alu.level(0, LongArray(4))
+        alu.level(0, IntArray(4))
         return alu.solution.joinToString("") { it.toString() }.toLong()
     }
 
     sealed class Instruction(val a: Int) {
-        abstract fun eval(registers: LongArray)
+        abstract fun eval(registers: IntArray)
     }
 
-    abstract class ConstantInstruction(a: Int, val amount: Long) : Instruction(a) {
+    abstract class ConstantInstruction(a: Int, val amount: Int) : Instruction(a) {
         override fun toString(): String {
             return "${this::class.simpleName} ${'w' + a} $amount"
         }
@@ -45,70 +45,70 @@ class Day24 {
 
     }
 
-    class AddConstant(a: Int, amount: Long) : ConstantInstruction(a, amount) {
-        override fun eval(registers: LongArray) {
+    class AddConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
+        override fun eval(registers: IntArray) {
             registers[a] += amount
         }
     }
 
     class AddRegister(a: Int, b: Int) : RegisterInstruction(a, b) {
-        override fun eval(registers: LongArray) {
+        override fun eval(registers: IntArray) {
             registers[a] += registers[b]
         }
     }
 
-    class MulConstant(a: Int, amount: Long) : ConstantInstruction(a, amount) {
-        override fun eval(registers: LongArray) {
+    class MulConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
+        override fun eval(registers: IntArray) {
             registers[a] *= amount
         }
     }
 
     class MulRegister(a: Int, b: Int) : RegisterInstruction(a, b) {
-        override fun eval(registers: LongArray) {
+        override fun eval(registers: IntArray) {
             registers[a] *= registers[b]
         }
     }
 
-    class DivConstant(a: Int, amount: Long) : ConstantInstruction(a, amount) {
-        override fun eval(registers: LongArray) {
+    class DivConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
+        override fun eval(registers: IntArray) {
             registers[a] /= amount
         }
     }
 
     class DivRegister(a: Int, b: Int) : RegisterInstruction(a, b) {
-        override fun eval(registers: LongArray) {
+        override fun eval(registers: IntArray) {
             registers[a] /= registers[b]
         }
     }
 
-    class ModConstant(a: Int, amount: Long) : ConstantInstruction(a, amount) {
-        override fun eval(registers: LongArray) {
+    class ModConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
+        override fun eval(registers: IntArray) {
             registers[a] %= amount
         }
     }
 
     class ModRegister(a: Int, b: Int) : RegisterInstruction(a, b) {
-        override fun eval(registers: LongArray) {
+        override fun eval(registers: IntArray) {
             registers[a] %= registers[b]
         }
     }
 
-    class EqlConstant(a: Int, amount: Long) : ConstantInstruction(a, amount) {
-        override fun eval(registers: LongArray) {
+    class EqlConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
+        override fun eval(registers: IntArray) {
             registers[a] = if (registers[a] == amount) 1 else 0
         }
     }
 
     class EqlRegister(a: Int, b: Int) : RegisterInstruction(a, b) {
-        override fun eval(registers: LongArray) {
+        override fun eval(registers: IntArray) {
             registers[a] = if (registers[a] == registers[b]) 1 else 0
         }
     }
 
     class LevelState {
-        private val states: MutableMap<Int, MutableList<LongArray>> = mutableMapOf()
+        private val states: MutableMap<Int, MutableList<IntArray>> = mutableMapOf()
 
-        fun add(s: LongArray): Boolean {
+        fun add(s: IntArray): Boolean {
             val h = s.contentHashCode()
             var l = states[h]
             if (l != null && l.any { it.contentEquals(s) }) return false
@@ -121,7 +121,7 @@ class Day24 {
         }
     }
 
-    class Alu(program: List<String>, private val digits: LongProgression) {
+    class Alu(program: List<String>, private val digits: IntProgression) {
         private val levelPrograms = buildList {
             val reader = program.drop(1).iterator()
             var current = mutableListOf<Instruction>()
@@ -133,7 +133,7 @@ class Day24 {
                 } else {
                     val a = args[0] - 'w'
                     val b = if (args[2].isLetter()) args[2] - 'w' else null
-                    val amount = if (b == null) args.drop(2).toLong() else null
+                    val amount = if (b == null) args.drop(2).toInt() else null
                     current.add(
                         when (op) {
                             "add" -> if (b == null) AddConstant(a, amount!!) else AddRegister(a, b)
@@ -149,18 +149,18 @@ class Day24 {
             add(current)
         }
 
-        val solution = LongArray(14)
+        val solution = IntArray(14)
         private val levelState = Array(14) { LevelState() }
 
-        fun level(level: Int, parentState: LongArray): Boolean {
+        fun level(level: Int, parentState: IntArray): Boolean {
             for (w in digits) {
-                val registers = longArrayOf(w, 0, 0, parentState[3])
+                val registers = intArrayOf(w, 0, 0, parentState[3])
                 solution[level] = w
                 levelPrograms[level].forEach { it.eval(registers) }
                 registers[1] = 0 // cheating
                 registers[2] = 0 // cheating
                 if (level == levelPrograms.lastIndex) {
-                    if (registers[3] == 0L) return true
+                    if (registers[3] == 0) return true
                 } else if (levelState[level].add(registers)) {
                     if (level(level + 1, registers)) return true
                 }

@@ -18,7 +18,7 @@ class Day24 {
     @Test
     fun testTwo(input: List<String>) {
         // TODO: this fails: `two` never finds a valid model number
-        two(input) shouldBe 11111111111111L
+        two(input) shouldBe 11717131211195L
     }
 
     fun two(input: List<String>): Long {
@@ -154,14 +154,13 @@ class Day24 {
 
         fun level(level: Int, parentState: LongArray): Boolean {
             for (w in digits) {
-                //                if (level < 3) println("${Instant.now()} working on $w for level $level")
                 val registers = longArrayOf(w, 0, 0, parentState[3])
                 solution[level] = w
                 levelPrograms[level].forEach { it.eval(registers) }
                 registers[1] = 0 // cheating
                 registers[2] = 0 // cheating
                 if (level == levelPrograms.lastIndex) {
-                    return registers[3] == 0L
+                    if (registers[3] == 0L) return true
                 } else if (levelState[level].add(registers)) {
                     if (level(level + 1, registers)) return true
                 }

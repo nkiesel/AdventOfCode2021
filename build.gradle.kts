@@ -19,6 +19,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    minHeapSize = "1g"
+    maxHeapSize = "10g"
 }
 
 kotlin {

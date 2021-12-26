@@ -17,7 +17,6 @@ class Day24 {
 
     @Test
     fun testTwo(input: List<String>) {
-        // TODO: this fails: `two` never finds a valid model number
         two(input) shouldBe 11717131211195L
     }
 
@@ -28,21 +27,16 @@ class Day24 {
         return alu.solution.joinToString("") { it.toString() }.toLong()
     }
 
-    sealed class Instruction(val a: Int) {
-        abstract fun eval(registers: IntArray)
+    sealed interface Instruction {
+        fun eval(registers: IntArray)
     }
 
-    abstract class ConstantInstruction(a: Int, val amount: Int) : Instruction(a) {
-        override fun toString(): String {
-            return "${this::class.simpleName} ${'w' + a} $amount"
-        }
+    abstract class ConstantInstruction(val a: Int, val amount: Int) : Instruction {
+        override fun toString() = "${this::class.simpleName} ${'w' + a} $amount"
     }
 
-    abstract class RegisterInstruction(a: Int, val b: Int) : Instruction(a) {
-        override fun toString(): String {
-            return "${this::class.simpleName} ${'w' + a} ${'w' + b}"
-        }
-
+    abstract class RegisterInstruction(val a: Int, val b: Int) : Instruction {
+        override fun toString() = "${this::class.simpleName} ${'w' + a} ${'w' + b}"
     }
 
     class AddConstant(a: Int, amount: Int) : ConstantInstruction(a, amount) {
@@ -111,7 +105,7 @@ class Day24 {
         fun add(s: IntArray): Boolean {
             val h = s.contentHashCode()
             var l = states[h]
-            if (l != null && l.any { it.contentEquals(s) }) return false
+            if (l != null && (l.size == 1 || l.any { it.contentEquals(s) })) return false
             if (l == null) {
                 l = mutableListOf()
                 states[h] = l
@@ -133,14 +127,14 @@ class Day24 {
                 } else {
                     val a = args[0] - 'w'
                     val b = if (args[2].isLetter()) args[2] - 'w' else null
-                    val amount = if (b == null) args.drop(2).toInt() else null
+                    val amount = if (b == null) args.drop(2).toInt() else 0
                     current.add(
                         when (op) {
-                            "add" -> if (b == null) AddConstant(a, amount!!) else AddRegister(a, b)
-                            "mul" -> if (b == null) MulConstant(a, amount!!) else MulRegister(a, b)
-                            "div" -> if (b == null) DivConstant(a, amount!!) else DivRegister(a, b)
-                            "mod" -> if (b == null) ModConstant(a, amount!!) else ModRegister(a, b)
-                            "eql" -> if (b == null) EqlConstant(a, amount!!) else EqlRegister(a, b)
+                            "add" -> if (b == null) AddConstant(a, amount) else AddRegister(a, b)
+                            "mul" -> if (b == null) MulConstant(a, amount) else MulRegister(a, b)
+                            "div" -> if (b == null) DivConstant(a, amount) else DivRegister(a, b)
+                            "mod" -> if (b == null) ModConstant(a, amount) else ModRegister(a, b)
+                            "eql" -> if (b == null) EqlConstant(a, amount) else EqlRegister(a, b)
                             else -> error("Invalid instruction")
                         }
                     )
